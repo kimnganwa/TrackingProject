@@ -8,8 +8,6 @@ function App() {
 
   return (
     <>
-    <Toaster/>
-
       <BrowserRouter>
         <Routes>
           <Route 
