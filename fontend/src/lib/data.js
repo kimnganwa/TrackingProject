@@ -4,4 +4,4 @@ export const FilterType = {
   completed: "completed"
 };
 
-FilterType[all]
+
