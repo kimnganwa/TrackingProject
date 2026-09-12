@@ -7,7 +7,7 @@ import TicketListPagination from '@/components/TicketListPagination';
 import DateTimeFilter from '@/components/DateTimeFilter';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/axios';
 
 const HomePage = () => {
   const [ticketBuffer, setTicketBuffer] =  useState([]);
@@ -22,7 +22,7 @@ const HomePage = () => {
   //Logic
   const fetchTicket = async () =>{
     try {
-      const res = await axios.get("http://localhost:5001/api/ticket");
+      const res = await api.get("/ticket");
       setTicketBuffer(res.data.tickets);
       setActiveTicketCount(res.data.activeCount)
       setCompleteTicketCount(res.data.completeCount)

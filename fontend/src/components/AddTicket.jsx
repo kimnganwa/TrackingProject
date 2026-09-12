@@ -3,15 +3,15 @@ import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Plus } from 'lucide-react'
 import { Input } from './ui/input'
-import axios from 'axios'
 import { toast } from 'sonner'
+import api from '@/lib/axios'
 
 const AddTicket = ({handleNewTicket}) => {
   const [newTicketTitle, setNewTicketTitle] = useState("");
   const addTicket = async () => {
     if(newTicketTitle.trim() ){
       try {
-        await axios.post("http://localhost:5001/api/ticket" , {title : newTicketTitle});
+        await api.post("/ticket" , {title : newTicketTitle});
         toast.success(`Ticket ${newTicketTitle} added`);
         handleNewTicket();
       } catch (error) {
@@ -49,6 +49,7 @@ const AddTicket = ({handleNewTicket}) => {
           size="xl"
           className="px-6"
           onClick={addTicket}
+          disable={!newTicketTitle.trim()}
         >
           Add Ticket
           <Plus className="size-5" />
