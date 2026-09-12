@@ -4,9 +4,14 @@ import { FilterType } from '@/lib/data'
 import { Button } from './ui/button'
 import { Filter } from 'lucide-react'
 
-const StartAndFilter = ( {completedTicketsCount = 0, activeTicketsCount = 0 , filter = "all"} ) => {
+const StartAndFilter = ( {
+  completedTicketsCount = 0, 
+  activeTicketsCount = 0 , 
+  filter = "all",
+  setFilter
+  } ) => {
   return (
-    <div className='flex flex-col items-start justify-between gap-4 sm:items-center'>
+    <div className='flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center'>
       {/* Thống kê số lượng ticket */}
       <div className="flex gap-3">
         <Badge
@@ -31,6 +36,7 @@ const StartAndFilter = ( {completedTicketsCount = 0, activeTicketsCount = 0 , fi
             variant={filter === type  ? 'gradient' : 'ghost'}
             size="sm"
             className='capitalize'
+            onClick={() => setFilter(type)}
           >
 
             <Filter className='size-4' />

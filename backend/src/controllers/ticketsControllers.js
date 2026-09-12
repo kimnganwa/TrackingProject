@@ -8,9 +8,32 @@ export const getAllTickets = async (req, res) => {
 
         const filter = project_id ? { project_id } : {};
 
-        const tickets = await Ticket.find(filter);
+        const result = await Ticket.aggregate([
+            {
+                $facet:{
+                    tickets: [{$sort: {createdAt: -1}}],
+                    activeCount: [
+                        {
+                        $match: {
+                            status: {
+                            $in: ["To Do", "In Progress", "Testing", "Re-Open"]
+                            }
+                        }
+    },
+    { $count: "count" }
+                    ],
+                    completeCount: [
+                        {$match:{status:"Done"}},
+                        {$count: "count"}
+                    ]
+                }
+            }
+        ])
+        const tickets = result[0].tickets;
+        const activeCount = result[0].activeCount[0]?.count || 0;
+        const completeCount = result[0].completeCount[0]?.count || 0;
 
-        res.status(200).json(tickets);
+        res.status(200).json({tickets, activeCount, completeCount});
     } catch (error) {
         console.error("Failed to fetch tickets:", error);
 
