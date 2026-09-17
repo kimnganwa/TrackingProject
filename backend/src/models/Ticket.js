@@ -28,8 +28,7 @@ const ticketSchema = new mongoose.Schema(
         },
 
         ticket_code: {
-            type: String,
-            required: true,
+            type: String
         },
 
         type: {

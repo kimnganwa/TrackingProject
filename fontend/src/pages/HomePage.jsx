@@ -84,7 +84,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/*Chân trang (đã đưa ra ngoài khối nội dung để nằm độc lập sát đáy)*/}
+        {/*Chân trang */}
         <Footer/>
     </div>
   );

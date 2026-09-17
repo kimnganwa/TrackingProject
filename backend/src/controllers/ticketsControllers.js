@@ -47,9 +47,27 @@ export const getAllTickets = async (req, res) => {
 // POST /api/tickets
 export const createTicket = async (req, res) => {
     try {
+        const prefix = req.body.type === "Task" ? "TASK" : "BUG";
+
+        const lastTicket = await Ticket.findOne({
+            type: req.body.type,
+            ticket_code: { $regex: `^${prefix}-\\d+$` },
+        }).sort({ ticket_code: -1 });
+
+        let nextNumber = 1;
+
+        if (lastTicket) {
+            const lastNumber = parseInt(lastTicket.ticket_code.split("-")[1], 10);
+            nextNumber = lastNumber + 1;
+        }
+
+        const ticketCode = `${prefix}-${String(nextNumber).padStart(4, "0")}`;
+
         const ticketData = {
             ...req.body,
+            ticket_code: ticketCode,
             status: "To Do",
+            reporter_id: req.user.id, // Tự động gán người tạo từ token đăng nhập
         };
 
         const ticket = await Ticket.create(ticketData);
@@ -57,13 +75,9 @@ export const createTicket = async (req, res) => {
         res.status(201).json(ticket);
     } catch (error) {
         console.error("Failed to create ticket:", error);
-
-        res.status(500).json({
-            message: "Internal server error",
-        });
+        res.status(500).json({ message: "Internal server error" });
     }
 };
-
 
 // PUT /api/tickets/:id
 export const updateTicket = async (req, res) => {
