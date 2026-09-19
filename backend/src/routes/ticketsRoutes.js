@@ -8,6 +8,7 @@ import {
 
 import { verifyToken, authorizeRoles } from "../middlewares/authMiddleware.js"; // Import middleware
 const router = express.Router();
+router.use(verifyToken);
 
 
 router.get("/", authorizeRoles("Admin", "User"), getAllTickets);

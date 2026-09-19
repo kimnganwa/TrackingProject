@@ -9,6 +9,7 @@ export const getAllTickets = async (req, res) => {
         const filter = project_id ? { project_id } : {};
 
         const result = await Ticket.aggregate([
+            { $match: filter },
             {
                 $facet:{
                     tickets: [{$sort: {createdAt: -1}}],
@@ -111,7 +112,7 @@ export const updateTicket = async (req, res) => {
                 });
             }
         }
-
+        delete req.body.ticket_code;
         Object.assign(ticket, req.body);
 
         await ticket.save();

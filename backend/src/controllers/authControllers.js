@@ -24,6 +24,9 @@ export const login = async (req, res) => {
 
             return res.status(401).json({ message: "Invalid email or password" });
         }
+        if (!user.is_active) {
+        return res.status(403).json({ message: "Your account is inactive" });
+        }
 
         await LoginLog.create({
             user_id: user._id,
@@ -34,7 +37,7 @@ export const login = async (req, res) => {
         });
 
         const token = jwt.sign(
-            { id: user._id, role: user.role }, 
+            { id: user._id, role: user.role, user_type: user.user_type }, 
             process.env.JWT_SECRET || "secret", 
             { expiresIn: "1d" }
         );

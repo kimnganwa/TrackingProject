@@ -3,7 +3,9 @@ import User from "../models/User.js";
 // GET /api/users
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find().select("-password_hash");
+        const filter = req.user.role === "Admin" ? {} : { role: "User" };
+
+        const users = await User.find(filter).select("-password_hash");
         res.status(200).json(users);
     } catch (error) {
         console.error("Failed to fetch users:", error);

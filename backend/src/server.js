@@ -2,6 +2,8 @@ import express from "express";
 import ticketRoute from "./routes/ticketsRoutes.js"; 
 import userRoute from "./routes/userRoutes.js"; 
 import authRoute from "./routes/authRoutes.js"; 
+import projectRoute from "./routes/projectRoutes.js"; 
+import projectMemberRoute from "./routes/projectMembersRoutes.js"; 
 import { connectDB } from "./config/db.js"; 
 import dotenv from "dotenv"; 
 import cors from 'cors';
@@ -21,6 +23,8 @@ app.use(cors({origin: "http://localhost:5173"}));
 app.use("/api/ticket", ticketRoute); 
 app.use("/api/users", userRoute); 
 app.use("/api/auth", authRoute);  
+app.use("/api/projects", projectRoute);  
+app.use("/api/project-members", projectMemberRoute); 
  
 app.listen(PORT, () => { 
     console.log(`Server started successfully on port ${PORT}`); 
