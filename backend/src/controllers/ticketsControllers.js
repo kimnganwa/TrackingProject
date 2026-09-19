@@ -1,5 +1,5 @@
 import Ticket from "../models/Ticket.js";
-
+import ProjectMember from "../models/ProjectMember.js";
 
 // GET /api/tickets
 export const getAllTickets = async (req, res) => {
@@ -12,7 +12,22 @@ export const getAllTickets = async (req, res) => {
             { $match: filter },
             {
                 $facet:{
-                    tickets: [{$sort: {createdAt: -1}}],
+                    tickets: [
+                        {$sort: {createdAt: -1}},
+                        {                        
+                            $project: {
+                            ticket_code: 1,
+                            type: 1,
+                            title: 1,
+                            priority: 1,
+                            status: 1,
+                            assignee_id: 1,
+                            reporter_id: 1,
+                            due_date: 1,
+                            project_id: 1
+                            }
+                        }
+                    ],
                     activeCount: [
                         {
                         $match: {
@@ -48,6 +63,20 @@ export const getAllTickets = async (req, res) => {
 // POST /api/tickets
 export const createTicket = async (req, res) => {
     try {
+        if (!req.body.project_id) {
+            return res.status(400).json({ message: "Project is required" });
+        }
+        const member = await ProjectMember.findOne({
+        project_id: req.body.project_id,
+        user_id: req.user.id
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                message: "You are not a member of this project"
+            });
+        }
+
         const prefix = req.body.type === "Task" ? "TASK" : "BUG";
 
         const lastTicket = await Ticket.findOne({
@@ -124,5 +153,62 @@ export const updateTicket = async (req, res) => {
         res.status(500).json({
             message: "Internal server error",
         });
+    }
+};
+// [GET] /api/tickets/:id (Xem chi tiết Ticket)
+export const getTicketById = async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id)
+            .populate("project_id", "name code")
+            .populate("assignee_id", "full_name avatar_url user_type")
+            .populate("reporter_id", "full_name avatar_url")
+            .populate("relations.target_id", "ticket_code title type status"); 
+        
+        if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+        res.status(200).json(ticket);
+    } catch (error) {
+        console.error("Failed to get ticket details:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// [POST] /api/tickets/:id/relations 
+export const addTicketRelation = async (req, res) => {
+    try {
+        const { target_id, relation_type } = req.body;
+        const ticket = await Ticket.findById(req.params.id);
+        
+        if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+        
+        // Tránh add trùng target_id
+        const exists = ticket.relations.find(r => r.target_id.toString() === target_id);
+        if (exists) return res.status(400).json({ message: "Relation already exists" });
+
+        ticket.relations.push({ target_id, relation_type });
+        await ticket.save();
+
+        res.status(201).json(ticket);
+    } catch (error) {
+        console.error("Failed to add relation:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// [DELETE] /api/tickets/:id/relations/:targetId 
+export const removeTicketRelation = async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+        if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+
+        // Lọc bỏ relation có target_id trùng với URL param
+        ticket.relations = ticket.relations.filter(
+            r => r.target_id.toString() !== req.params.targetId
+        );
+        await ticket.save();
+
+        res.status(200).json({ message: "Relation removed successfully", ticket });
+    } catch (error) {
+        console.error("Failed to remove relation:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
