@@ -80,7 +80,6 @@ export const createProject = async (req, res) => {
 
         res.status(500).json({ message: "Internal server error" });
     }
-    console.log("req.user:", req.user);
 };
 
 // PUT /api/projects/:id

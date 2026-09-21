@@ -7,6 +7,7 @@ import projectMemberRoute from "./routes/projectMembersRoutes.js";
 import { connectDB } from "./config/db.js"; 
 import dotenv from "dotenv"; 
 import cors from 'cors';
+import epicRoute from "./routes/epicsRoutes.js";
  
 dotenv.config(); 
  
@@ -20,12 +21,15 @@ app.use(express.json());
 app.use(cors({origin: "http://localhost:5173"}));
  
 // routes
-app.use("/api/ticket", ticketRoute); 
+app.use("/api/tickets", ticketRoute); 
 app.use("/api/users", userRoute); 
 app.use("/api/auth", authRoute);  
 app.use("/api/projects", projectRoute);  
 app.use("/api/project-members", projectMemberRoute); 
- 
+app.use("/api/epics", epicRoute);
+
+
 app.listen(PORT, () => { 
     console.log(`Server started successfully on port ${PORT}`); 
 });
+

@@ -22,48 +22,50 @@ export const getAllTickets = async (req, res) => {
                     { reporter_id: userId }
                 ]
             };
+
         const result = await Ticket.aggregate([
             { $match: filter },
             {
-                $facet:{
+                $facet: {
                     tickets: [
-                        {$sort: {createdAt: -1}},
-                        {                        
+                        { $sort: { createdAt: -1 } },
+                        {
                             $project: {
-                            ticket_code: 1,
-                            type: 1,
-                            title: 1,
-                            priority: 1,
-                            status: 1,
-                            assignee_id: 1,
-                            reporter_id: 1,
-                            due_date: 1,
-                            project_id: 1
+                                ticket_code: 1,
+                                type: 1,
+                                title: 1,
+                                priority: 1,
+                                status: 1,
+                                assignee_id: 1,
+                                reporter_id: 1,
+                                due_date: 1,
+                                project_id: 1
                             }
                         }
                     ],
                     activeCount: [
                         {
-                        $match: {
-                            status: {
-                            $in: ["To Do", "In Progress", "Testing", "Re-Open"]
+                            $match: {
+                                status: {
+                                    $in: ["To Do", "In Progress", "Testing", "Re-Open"]
+                                }
                             }
-                        }
-    },
-    { $count: "count" }
+                        },
+                        { $count: "count" }
                     ],
                     completeCount: [
-                        {$match:{status:"Done"}},
-                        {$count: "count"}
+                        { $match: { status: "Done" } },
+                        { $count: "count" }
                     ]
                 }
             }
-        ])
+        ]);
+
         const tickets = result[0].tickets;
         const activeCount = result[0].activeCount[0]?.count || 0;
         const completeCount = result[0].completeCount[0]?.count || 0;
 
-        res.status(200).json({tickets, activeCount, completeCount});
+        res.status(200).json({ tickets, activeCount, completeCount });
     } catch (error) {
         console.error("Failed to fetch tickets:", error);
 
@@ -80,9 +82,10 @@ export const createTicket = async (req, res) => {
         if (!req.body.project_id) {
             return res.status(400).json({ message: "Project is required" });
         }
+
         const member = await ProjectMember.findOne({
-        project_id: req.body.project_id,
-        user_id: req.user.id
+            project_id: req.body.project_id,
+            user_id: req.user.id
         });
 
         if (!member) {
@@ -91,7 +94,19 @@ export const createTicket = async (req, res) => {
             });
         }
 
-        const prefix = req.body.type === "Task" ? "TASK" : "BUG";
+        const prefixMap = {
+            Story: "STORY",
+            Task: "TASK",
+            Bug: "BUG"
+        };
+
+        const prefix = prefixMap[req.body.type];
+
+        if (!prefix) {
+            return res.status(400).json({
+                message: "Invalid ticket type"
+            });
+        }
 
         const lastTicket = await Ticket.findOne({
             type: req.body.type,
@@ -107,23 +122,23 @@ export const createTicket = async (req, res) => {
 
         const ticketCode = `${prefix}-${String(nextNumber).padStart(4, "0")}`;
 
-       const ticketData = {
-    project_id: req.body.project_id,
-    type: req.body.type,
-    title: req.body.title.trim(),
-    description: req.body.description?.trim() || "",
-    priority: req.body.priority,
-    reporter_id: req.body.reporter_id,
-    ticket_code: ticketCode,
-};
+        const ticketData = {
+            project_id: req.body.project_id,
+            type: req.body.type,
+            title: req.body.title.trim(),
+            description: req.body.description?.trim() || "",
+            priority: req.body.priority,
+            reporter_id: req.user.id,
+            ticket_code: ticketCode,
+        };
 
-if (req.body.assignee_id) {
-    ticketData.assignee_id = req.body.assignee_id;
-}
+        if (req.body.assignee_id) {
+            ticketData.assignee_id = req.body.assignee_id;
+        }
 
-if (req.body.due_date) {
-    ticketData.due_date = req.body.due_date;
-}
+        if (req.body.due_date) {
+            ticketData.due_date = req.body.due_date;
+        }
 
         const ticket = await Ticket.create(ticketData);
 
@@ -149,8 +164,7 @@ export const updateTicket = async (req, res) => {
             const allowedTransitions = {
                 "To Do": ["In Progress"],
                 "In Progress": ["Testing"],
-                "Testing": ["Done", "Re-Open"],
-                "Re-Open": ["In Progress"],
+                "Testing": ["Done", "In Progress"],
                 "Done": [],
             };
 
@@ -166,6 +180,7 @@ export const updateTicket = async (req, res) => {
                 });
             }
         }
+
         delete req.body.ticket_code;
         Object.assign(ticket, req.body);
 
@@ -180,6 +195,7 @@ export const updateTicket = async (req, res) => {
         });
     }
 };
+
 // [GET] /api/tickets/:id (Xem chi tiết Ticket)
 export const getTicketById = async (req, res) => {
     try {
@@ -187,8 +203,8 @@ export const getTicketById = async (req, res) => {
             .populate("project_id", "name code")
             .populate("assignee_id", "full_name avatar_url user_type")
             .populate("reporter_id", "full_name avatar_url")
-            .populate("relations.target_id", "ticket_code title type status"); 
-        
+            .populate("relations.target_id", "ticket_code title type status");
+
         if (!ticket) return res.status(404).json({ message: "Ticket not found" });
         res.status(200).json(ticket);
     } catch (error) {
@@ -197,14 +213,14 @@ export const getTicketById = async (req, res) => {
     }
 };
 
-// [POST] /api/tickets/:id/relations 
+// [POST] /api/tickets/:id/relations
 export const addTicketRelation = async (req, res) => {
     try {
         const { target_id, relation_type } = req.body;
         const ticket = await Ticket.findById(req.params.id);
-        
+
         if (!ticket) return res.status(404).json({ message: "Ticket not found" });
-        
+
         // Tránh add trùng target_id
         const exists = ticket.relations.find(r => r.target_id.toString() === target_id);
         if (exists) return res.status(400).json({ message: "Relation already exists" });
@@ -219,7 +235,7 @@ export const addTicketRelation = async (req, res) => {
     }
 };
 
-// [DELETE] /api/tickets/:id/relations/:targetId 
+// [DELETE] /api/tickets/:id/relations/:targetId
 export const removeTicketRelation = async (req, res) => {
     try {
         const ticket = await Ticket.findById(req.params.id);

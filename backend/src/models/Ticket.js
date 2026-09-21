@@ -26,6 +26,11 @@ const ticketSchema = new mongoose.Schema(
             ref: "Project",
             required: true,
         },
+        epic_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Epic",
+            default: null,
+        },
 
         ticket_code: {
             type: String
@@ -33,7 +38,7 @@ const ticketSchema = new mongoose.Schema(
 
         type: {
             type: String,
-            enum: ["Task", "Bug"],
+            enum: ["Story", "Task", "Bug"],
             required: true,
         },
 
@@ -57,7 +62,7 @@ const ticketSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["To Do", "In Progress", "Testing", "Re-Open", "Done"],
+            enum: ["To Do", "In Progress", "Testing", "Done"],
             required: true,
             default: "To Do",
         },
