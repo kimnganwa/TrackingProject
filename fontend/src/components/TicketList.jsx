@@ -20,7 +20,7 @@ const TicketList = ({ filterTicket, filter }) => {
   
   // Các status BE đang có + bổ sung cho đủ 6 cột UI
   // TODO: Nếu BE sau này đổi tên status thì nhớ vào đây sửa lại cho khớp map nhé
-  const columns = ["To Do", "In Progress", "Testing", "Pending", "Done", "Re-Open"];
+  const columns = ["To Do", "In Progress", "Testing", "Done"];
 
   const sortedTickets = [...(filterTicket || [])].sort((a, b) => {
     if (a.status === "Done" && b.status !== "Done") return 1;
@@ -32,21 +32,23 @@ const TicketList = ({ filterTicket, filter }) => {
     return <TicktetEmptyState filter={filter} />
   }
 
-  return (
-    // Cuộn ngang khi board quá rộng
-    <div className='flex gap-4 overflow-x-auto pb-4 items-start'>
+return (
+    <div className='grid grid-cols-4 gap-4 pb-4 items-start w-full'>
       {columns.map((statusTitle) => (
-        <div key={statusTitle} className="flex-shrink-0 w-72 bg-muted/30 rounded-xl p-4 min-h-[500px]">
-          {/* Header cột */}
-          <div className="flex justify-between items-center mb-4">
+        // TODO: Đổi min-h thành h-full hoặc max-h, thêm flex flex-col để chia layout cho cột
+        <div key={statusTitle} className="w-full bg-muted/30 rounded-xl p-4 flex flex-col h-[700px]">
+          
+          {/* Header cột (Giữ cố định không cuộn) */}
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h3 className="font-semibold text-sm">{statusTitle}</h3>
             <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
               {sortedTickets.filter(t => t.status === statusTitle).length}
             </span>
           </div>
 
-          {/* List card trong cột */}
-          <div className='space-y-3 flex flex-col'>
+          {/* List card trong cột - TODO: Thêm overflow-y-auto để cuộn, flex-1 để chiếm phần không gian còn lại */}
+          <div className='space-y-3 flex flex-col flex-1 overflow-y-auto pr-2 pb-2 
+            scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent'>
             {sortedTickets
               .filter(ticket => ticket.status === statusTitle)
               .map((ticket, index) => (

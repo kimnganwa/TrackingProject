@@ -2,27 +2,38 @@ import Ticket from "../models/Ticket.js";
 import Epic from "../models/Epic.js";
 import ProjectMember from "../models/ProjectMember.js";
 import mongoose from "mongoose";
+import Sprint from "../models/Sprint.js";
 
 // GET /api/tickets
 export const getAllTickets = async (req, res) => {
     try {
         const userId = new mongoose.Types.ObjectId(req.user.id);
-        const { project_id } = req.query;
+        const { project_id, epic_id, parent_id, sprint_id } = req.query;
 
-        const filter = project_id
-            ? {
-                project_id,
-                $or: [
-                    { assignee_id: userId },
-                    { reporter_id: userId }
-                ]
-            }
-            : {
-                $or: [
-                    { assignee_id: userId },
-                    { reporter_id: userId }
-                ]
-            };
+        const filter = {
+            $or: [
+                { assignee_id: userId },
+                { reporter_id: userId }
+            ]
+        };
+
+        if (project_id) {
+            filter.project_id = new mongoose.Types.ObjectId(project_id);
+        }
+
+        if (epic_id) {
+            filter.epic_id = new mongoose.Types.ObjectId(epic_id);
+        }
+
+        if (parent_id) {
+            filter.parent_id = new mongoose.Types.ObjectId(parent_id);
+        }
+
+        if (sprint_id === "none") {
+            filter.sprint_id = null;
+        } else if (sprint_id) {
+            filter.sprint_id = new mongoose.Types.ObjectId(sprint_id);
+        }
 
         const result = await Ticket.aggregate([
             { $match: filter },
@@ -43,6 +54,7 @@ export const getAllTickets = async (req, res) => {
                                 project_id: 1,
                                 epic_id: 1,
                                 parent_id: 1,
+                                sprint_id: 1,
                             }
                         }
                     ],
@@ -281,9 +293,31 @@ export const updateTicket = async (req, res) => {
             ticket.parent_id = req.body.parent_id || null;
             delete req.body.parent_id;
         }
+        if (req.body.sprint_id !== undefined) {
+        if (req.body.sprint_id) {
+            const sprint = await Sprint.findById(req.body.sprint_id);
+
+            if (!sprint) {
+                return res.status(404).json({
+                    message: "Sprint not found"
+                });
+            }
+
+            if (sprint.project_id.toString() !== ticket.project_id.toString()) {
+                return res.status(400).json({
+                    message: "Sprint and Ticket must belong to the same project"
+                });
+            }
+        }
+
+        ticket.sprint_id = req.body.sprint_id || null;
+        delete req.body.sprint_id;
+    }
+
 
         delete req.body.epic_id;
         delete req.body.parent_id;
+        delete req.body.sprint_id;
 
         Object.assign(ticket, req.body);
         await ticket.save();
@@ -307,7 +341,8 @@ export const getTicketById = async (req, res) => {
             .populate("reporter_id", "full_name avatar_url")
             .populate("relations.target_id", "ticket_code title type status")
             .populate("epic_id", "epic_code title status")
-            .populate("parent_id", "ticket_code title type status");
+            .populate("parent_id", "ticket_code title type status")
+            .populate("sprint_id", "name goal status start_date end_date");
 
         if (!ticket) return res.status(404).json({ message: "Ticket not found" });
         res.status(200).json(ticket);

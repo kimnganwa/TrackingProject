@@ -8,6 +8,7 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv"; 
 import cors from 'cors';
 import epicRoute from "./routes/epicsRoutes.js";
+import sprintRoute from "./routes/sprintsRoutes.js";
  
 dotenv.config(); 
  
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/projects", projectRoute);  
 app.use("/api/project-members", projectMemberRoute); 
 app.use("/api/epics", epicRoute);
+app.use("/api/sprints", sprintRoute);
 
 
 app.listen(PORT, () => { 

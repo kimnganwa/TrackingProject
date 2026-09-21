@@ -27,7 +27,7 @@ const HomePage = () => {
       const token = localStorage.getItem("token");
       const decoded = jwtDecode(token);
 
-      const res = await api.get("/ticket", {
+      const res = await api.get("/tickets", {
         params: {
           user_id: decoded.id,
         },
