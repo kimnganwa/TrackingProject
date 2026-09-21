@@ -46,9 +46,19 @@ export const addProjectMember = async (req, res) => {
     }
 };
 
-// GET /api/project-members/:project_id
+// GET /api/project-members
 export const getProjectMembers = async (req, res) => {
     try {
+        const member = await ProjectMember.findOne({
+            project_id: req.params.project_id,
+            user_id: req.user.id
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                message: "You are not a member of this project"
+            });
+        }
         const members = await ProjectMember.find({
             project_id: req.params.project_id
         }).populate(

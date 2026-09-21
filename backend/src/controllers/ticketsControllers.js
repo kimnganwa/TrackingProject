@@ -1,4 +1,5 @@
 import Ticket from "../models/Ticket.js";
+import Epic from "../models/Epic.js";
 import ProjectMember from "../models/ProjectMember.js";
 import mongoose from "mongoose";
 
@@ -39,7 +40,9 @@ export const getAllTickets = async (req, res) => {
                                 assignee_id: 1,
                                 reporter_id: 1,
                                 due_date: 1,
-                                project_id: 1
+                                project_id: 1,
+                                epic_id: 1,
+                                parent_id: 1,
                             }
                         }
                     ],
@@ -47,7 +50,7 @@ export const getAllTickets = async (req, res) => {
                         {
                             $match: {
                                 status: {
-                                    $in: ["To Do", "In Progress", "Testing", "Re-Open"]
+                                    $in: ["To Do", "In Progress", "Testing"]
                                 }
                             }
                         },
@@ -107,6 +110,46 @@ export const createTicket = async (req, res) => {
                 message: "Invalid ticket type"
             });
         }
+        let epicId = null;
+        let parentId = null;
+
+        if (req.body.type === "Story" && req.body.epic_id) {
+            const epic = await Epic.findById(req.body.epic_id);
+
+            if (!epic) {
+                return res.status(404).json({ message: "Epic not found" });
+            }
+
+            if (epic.project_id.toString() !== req.body.project_id) {
+                return res.status(400).json({
+                    message: "Epic and Story must belong to the same project"
+                });
+            }
+
+            epicId = epic._id;
+        }
+
+        if ((req.body.type === "Task" || req.body.type === "Bug") && req.body.parent_id) {
+            const parentTicket = await Ticket.findById(req.body.parent_id);
+
+            if (!parentTicket) {
+                return res.status(404).json({ message: "Parent Story not found" });
+            }
+
+            if (parentTicket.type !== "Story") {
+                return res.status(400).json({
+                    message: "Task or Bug parent must be a Story"
+                });
+            }
+
+            if (parentTicket.project_id.toString() !== req.body.project_id) {
+                return res.status(400).json({
+                    message: "Parent Story and ticket must belong to the same project"
+                });
+            }
+
+            parentId = parentTicket._id;
+        }
 
         const lastTicket = await Ticket.findOne({
             type: req.body.type,
@@ -124,12 +167,15 @@ export const createTicket = async (req, res) => {
 
         const ticketData = {
             project_id: req.body.project_id,
+            epic_id: epicId,
+            parent_id: parentId,
             type: req.body.type,
             title: req.body.title.trim(),
             description: req.body.description?.trim() || "",
             priority: req.body.priority,
             reporter_id: req.user.id,
             ticket_code: ticketCode,
+            
         };
 
         if (req.body.assignee_id) {
@@ -182,8 +228,64 @@ export const updateTicket = async (req, res) => {
         }
 
         delete req.body.ticket_code;
-        Object.assign(ticket, req.body);
+        delete req.body.project_id;
+        delete req.body.type;
+        delete req.body.reporter_id;
 
+        if (ticket.type === "Story" && req.body.epic_id !== undefined) {
+            if (req.body.epic_id) {
+                const epic = await Epic.findById(req.body.epic_id);
+
+                if (!epic) {
+                    return res.status(404).json({ message: "Epic not found" });
+                }
+
+                if (epic.project_id.toString() !== ticket.project_id.toString()) {
+                    return res.status(400).json({
+                        message: "Epic and Story must belong to the same project"
+                    });
+                }
+            }
+
+            ticket.epic_id = req.body.epic_id || null;
+            delete req.body.epic_id;
+        }
+
+        if (
+            (ticket.type === "Task" || ticket.type === "Bug") &&
+            req.body.parent_id !== undefined
+        ) {
+            if (req.body.parent_id) {
+                const parentTicket = await Ticket.findById(req.body.parent_id);
+
+                if (!parentTicket) {
+                    return res.status(404).json({ message: "Parent Story not found" });
+                }
+
+                if (parentTicket.type !== "Story") {
+                    return res.status(400).json({
+                        message: "Task or Bug parent must be a Story"
+                    });
+                }
+
+                if (
+                    parentTicket.project_id.toString() !==
+                    ticket.project_id.toString()
+                ) {
+                    return res.status(400).json({
+                        message: "Parent Story and ticket must belong to the same project"
+                    });
+                }
+            }
+
+            ticket.parent_id = req.body.parent_id || null;
+            delete req.body.parent_id;
+        }
+
+        delete req.body.epic_id;
+        delete req.body.parent_id;
+
+        Object.assign(ticket, req.body);
         await ticket.save();
 
         res.status(200).json(ticket);
@@ -196,14 +298,16 @@ export const updateTicket = async (req, res) => {
     }
 };
 
-// [GET] /api/tickets/:id (Xem chi tiết Ticket)
+// [GET] /api/tickets/:id 
 export const getTicketById = async (req, res) => {
     try {
         const ticket = await Ticket.findById(req.params.id)
             .populate("project_id", "name code")
             .populate("assignee_id", "full_name avatar_url user_type")
             .populate("reporter_id", "full_name avatar_url")
-            .populate("relations.target_id", "ticket_code title type status");
+            .populate("relations.target_id", "ticket_code title type status")
+            .populate("epic_id", "epic_code title status")
+            .populate("parent_id", "ticket_code title type status");
 
         if (!ticket) return res.status(404).json({ message: "Ticket not found" });
         res.status(200).json(ticket);

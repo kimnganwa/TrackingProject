@@ -31,6 +31,16 @@ const ticketSchema = new mongoose.Schema(
             ref: "Epic",
             default: null,
         },
+        parent_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Ticket",
+            default: null,
+        },
+        sprint_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Sprint",
+        default: null,
+    },
 
         ticket_code: {
             type: String

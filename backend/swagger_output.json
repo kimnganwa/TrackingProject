@@ -11,7 +11,7 @@
     "http"
   ],
   "paths": {
-    "/api/ticket/": {
+    "/api/tickets/": {
       "get": {
         "description": "",
         "parameters": [
@@ -60,6 +60,27 @@
                 },
                 "type": {
                   "example": "any"
+                },
+                "epic_id": {
+                  "example": "any"
+                },
+                "parent_id": {
+                  "example": "any"
+                },
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "priority": {
+                  "example": "any"
+                },
+                "assignee_id": {
+                  "example": "any"
+                },
+                "due_date": {
+                  "example": "any"
                 }
               }
             }
@@ -78,13 +99,16 @@
           "403": {
             "description": "Forbidden"
           },
+          "404": {
+            "description": "Not Found"
+          },
           "500": {
             "description": "Internal Server Error"
           }
         }
       }
     },
-    "/api/ticket/{id}": {
+    "/api/tickets/{id}": {
       "put": {
         "description": "",
         "parameters": [
@@ -109,6 +133,21 @@
                   "example": "any"
                 },
                 "ticket_code": {
+                  "example": "any"
+                },
+                "project_id": {
+                  "example": "any"
+                },
+                "type": {
+                  "example": "any"
+                },
+                "reporter_id": {
+                  "example": "any"
+                },
+                "epic_id": {
+                  "example": "any"
+                },
+                "parent_id": {
                   "example": "any"
                 }
               }
@@ -170,7 +209,7 @@
         }
       }
     },
-    "/api/ticket/{id}/relations": {
+    "/api/tickets/{id}/relations": {
       "post": {
         "description": "",
         "parameters": [
@@ -223,7 +262,7 @@
         }
       }
     },
-    "/api/ticket/{id}/relations/{targetId}": {
+    "/api/tickets/{id}/relations/{targetId}": {
       "delete": {
         "description": "",
         "parameters": [
@@ -264,7 +303,7 @@
         }
       }
     },
-    "/api/ticket/{id}/activities": {
+    "/api/tickets/{id}/activities": {
       "get": {
         "description": "",
         "parameters": [
@@ -347,7 +386,7 @@
         }
       }
     },
-    "/api/ticket/{id}/attachments": {
+    "/api/tickets/{id}/attachments": {
       "get": {
         "description": "",
         "parameters": [
@@ -844,80 +883,6 @@
         }
       }
     },
-    "/api/projects/{id}/tickets": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        }
-      },
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "project_id": {
-                  "example": "any"
-                },
-                "type": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
     "/api/project-members/{project_id}": {
       "get": {
         "description": "",
@@ -981,6 +946,174 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/epics/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "project_id": {
+                  "example": "any"
+                },
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/epics/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "401": {
             "description": "Unauthorized"
