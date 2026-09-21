@@ -1,13 +1,27 @@
 import Ticket from "../models/Ticket.js";
 import ProjectMember from "../models/ProjectMember.js";
+import mongoose from "mongoose";
 
 // GET /api/tickets
 export const getAllTickets = async (req, res) => {
     try {
+        const userId = new mongoose.Types.ObjectId(req.user.id);
         const { project_id } = req.query;
 
-        const filter = project_id ? { project_id } : {};
-
+        const filter = project_id
+            ? {
+                project_id,
+                $or: [
+                    { assignee_id: userId },
+                    { reporter_id: userId }
+                ]
+            }
+            : {
+                $or: [
+                    { assignee_id: userId },
+                    { reporter_id: userId }
+                ]
+            };
         const result = await Ticket.aggregate([
             { $match: filter },
             {
@@ -93,12 +107,23 @@ export const createTicket = async (req, res) => {
 
         const ticketCode = `${prefix}-${String(nextNumber).padStart(4, "0")}`;
 
-        const ticketData = {
-            ...req.body,
-            ticket_code: ticketCode,
-            status: "To Do",
-            reporter_id: req.user.id, // Tự động gán người tạo từ token đăng nhập
-        };
+       const ticketData = {
+    project_id: req.body.project_id,
+    type: req.body.type,
+    title: req.body.title.trim(),
+    description: req.body.description?.trim() || "",
+    priority: req.body.priority,
+    reporter_id: req.body.reporter_id,
+    ticket_code: ticketCode,
+};
+
+if (req.body.assignee_id) {
+    ticketData.assignee_id = req.body.assignee_id;
+}
+
+if (req.body.due_date) {
+    ticketData.due_date = req.body.due_date;
+}
 
         const ticket = await Ticket.create(ticketData);
 

@@ -5,12 +5,14 @@ import Header from '@/components/Header';
 import TicketList from '@/components/TicketList';
 import TicketListPagination from '@/components/TicketListPagination';
 import DateTimeFilter from '@/components/DateTimeFilter';
+import ProjectSidebar from '@/components/ProjectSidebar'; // Nhớ import thêm cái này
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
+import { jwtDecode } from "jwt-decode";
 
 const HomePage = () => {
-  const [ticketBuffer, setTicketBuffer] =  useState([]);
+  const [ticketBuffer, setTicketBuffer] = useState([]);
   const [activeTicketCount, setActiveTicketCount] = useState(0);
   const [completeTicketCount, setCompleteTicketCount] = useState(0);
   const [filter, setFilter] = useState("all");
@@ -20,72 +22,78 @@ const HomePage = () => {
   }, []);
 
   //Logic
-  const fetchTicket = async () =>{
+  const fetchTicket = async () => {
     try {
-      const res = await api.get("/ticket");
+      const token = localStorage.getItem("token");
+      const decoded = jwtDecode(token);
+
+      const res = await api.get("/ticket", {
+        params: {
+          user_id: decoded.id,
+        },
+      });
+
       setTicketBuffer(res.data.tickets);
-      setActiveTicketCount(res.data.activeCount)
-      setCompleteTicketCount(res.data.completeCount)
-      
+      setActiveTicketCount(res.data.activeCount);
+      setCompleteTicketCount(res.data.completeCount);
+
     } catch (error) {
-      console.error("Error when access tickets",error);
+      console.error("Error when access tickets", error);
       toast.error("Error when access tickets", { id: "fetch-error" });
     }
   };
 
-
-
-  const handleTicketChange =() =>{
+  const handleTicketChange = () => {
     fetchTicket();
   }
+  
   //Biến 
-  const filterTickets =  ticketBuffer.filter((ticket) => {
+  const filterTickets = ticketBuffer.filter((ticket) => {
     switch(filter){
       case 'active':
         return ["To Do", "In Progress", "Testing", "Re-Open"].includes(ticket.status);
       case 'completed':
-        return ticket.status ==='Done';
+        return ticket.status === 'Done';
       default:
         return true;
-        }
+    }
   });
 
-
   return (
-    // Thêm flex flex-col và min-h-screen
-    <div className="container flex flex-col min-h-screen pt-8 mx-auto relative">
-        {/* Thêm flex-1 để đẩy Footer xuống */}
-        <div className="flex-1 w-full max-w-2xl mx-auto space-y-6">
-          {/*đầu trang*/}
-          <Header/>
+    <div className="flex min-h-screen">
+      {/* Cột trái: Sidebar Project */}
+      <ProjectSidebar />
 
-          {/*Tạo ticket*/}
-          <AddTicket
-            handleNewTicket={handleTicketChange}
-          />
+      {/* Cột phải: Main Board */}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        <div className="flex-1 w-full mx-auto space-y-6 p-8 overflow-x-auto">
+          {/* Đầu trang */}
+          <Header />
 
-          {/*Thống kê và bộ lọc*/}
+          {/* Tạo ticket */}
+          <AddTicket handleNewTicket={handleTicketChange} />
+
+          {/* Thống kê và bộ lọc */}
           <StartAndFilter
             filter={filter}
             setFilter={setFilter}
             activeTicketsCount={activeTicketCount}
             completedTicketsCount={completeTicketCount}
-
           />
           
-          {/*Danh sách ticket*/}
-          <TicketList filterTicket={filterTickets} filter={filter}
-          />
+          {/* Danh sách ticket (Đã chuyển thành dạng Board ngang) */}
+          <TicketList filterTicket={filterTickets} filter={filter} />
 
-          {/*Phân trang lọc theo ngày*/}
-          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
-            <TicketListPagination/>
-            <DateTimeFilter/>
+          {/* Phân trang lọc theo ngày */}
+          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row mt-8">
+            <TicketListPagination />
+            <DateTimeFilter />
           </div>
         </div>
 
-        {/*Chân trang */}
-        <Footer/>
+        {/* Chân trang */}
+        <Footer />
+      </div>
     </div>
   );
 };

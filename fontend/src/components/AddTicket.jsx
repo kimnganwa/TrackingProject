@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Plus, X, Search } from "lucide-react";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { jwtDecode } from "jwt-decode";
 
 const AddTicket = ({ handleNewTicket }) => {
   const [showModal, setShowModal] = useState(false);
+
+  const [projects, setProjects] = useState([]);
+  const [projectUsers, setProjectUsers] = useState([]);
+  const [selectedProject, setSelectedProject] = useState("");
 
   const [formData, setFormData] = useState({
     type: "Task",
@@ -18,16 +23,20 @@ const AddTicket = ({ handleNewTicket }) => {
     due_date: "",
   });
 
-  const projectUsers = [
-  {
-    _id: "68a123456789abcdef123458",
-    full_name: "Nguyễn Văn A",
-  },
-  {
-    _id: "68a123456789abcdef123457",
-    full_name: "Trần Văn B",
-  },
-];
+  // Get projects
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await api.get("/projects");
+        setProjects(response.data);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const openModal = () => {
     setFormData({
       type: "Task",
@@ -38,6 +47,8 @@ const AddTicket = ({ handleNewTicket }) => {
       due_date: "",
     });
 
+    setSelectedProject("");
+    setProjectUsers([]);
     setShowModal(true);
   };
 
@@ -54,8 +65,40 @@ const AddTicket = ({ handleNewTicket }) => {
     }));
   };
 
+  // Get project members when project changes
+  const handleProjectChange = async (event) => {
+    const projectId = event.target.value;
+
+    setSelectedProject(projectId);
+    setProjectUsers([]);
+
+    setFormData((prev) => ({
+      ...prev,
+      assignee_id: "",
+    }));
+
+    if (!projectId) return;
+
+    try {
+      const response = await api.get(`/project-members/${projectId}`);
+
+      setProjectUsers(
+        response.data.map((member) => member.user_id)
+      );
+    } catch (error) {
+      console.error("Failed to fetch project members:", error);
+      toast.error("Failed to load project members");
+    }
+  };
+
   const createTicket = async (event) => {
     event.preventDefault();
+    const token = localStorage.getItem("token");
+const decoded = jwtDecode(token);
+    if (!selectedProject) {
+      toast.error("Please select a project");
+      return;
+    }
 
     if (!formData.title.trim()) {
       toast.error("Please enter ticket title");
@@ -63,12 +106,12 @@ const AddTicket = ({ handleNewTicket }) => {
     }
 
     const ticketData = {
-      project_id: "6a8050136778f35b19ce1602",
+      project_id: selectedProject,
       type: formData.type,
       title: formData.title.trim(),
       description: formData.description.trim(),
       priority: formData.priority,
-      reporter_id: "68a123456789abcdef123458",
+      reporter_id: decoded.id,
     };
 
     if (formData.assignee_id.trim()) {
@@ -94,6 +137,9 @@ const AddTicket = ({ handleNewTicket }) => {
         due_date: "",
       });
 
+      setSelectedProject("");
+      setProjectUsers([]);
+
       handleNewTicket();
     } catch (error) {
       console.error("Error occur when add new ticket", error);
@@ -112,7 +158,7 @@ const AddTicket = ({ handleNewTicket }) => {
             <Input
               type="text"
               placeholder="Search ticket..."
-              className="h-12 pl-10 text-base bg-slate-50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+              className="h-12 pl-10 text-base bg-white text-card-foreground border-border/50 focus:border-primary/50 focus:ring-primary/20"
             />
           </div>
 
@@ -131,10 +177,10 @@ const AddTicket = ({ handleNewTicket }) => {
       {/* Create Ticket Popup */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
+          <div className="w-full max-w-2xl rounded-xl bg-card text-card-foreground shadow-2xl">
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border/30 px-6 py-4">
               <h2 className="text-xl font-semibold">
                 Create Ticket
               </h2>
@@ -142,7 +188,7 @@ const AddTicket = ({ handleNewTicket }) => {
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-md p-2 hover:bg-slate-100"
+                className="rounded-md p-2 hover:bg-black/10 transition-colors"
               >
                 <X className="size-5" />
               </button>
@@ -151,6 +197,27 @@ const AddTicket = ({ handleNewTicket }) => {
             {/* Form */}
             <form onSubmit={createTicket} className="p-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                {/* Project */}
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium">
+                    Project *
+                  </label>
+
+                  <select
+                    value={selectedProject}
+                    onChange={handleProjectChange}
+                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
+                  >
+                    <option value="">Select project</option>
+
+                    {projects.map((project) => (
+                      <option key={project._id} value={project._id}>
+                        {project.code} - {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Type */}
                 <div>
@@ -162,7 +229,7 @@ const AddTicket = ({ handleNewTicket }) => {
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
                   >
                     <option value="Task">Task</option>
                     <option value="Bug">Bug</option>
@@ -180,6 +247,7 @@ const AddTicket = ({ handleNewTicket }) => {
                     value={formData.title}
                     onChange={handleChange}
                     placeholder="Enter ticket title..."
+                    className="bg-white text-card-foreground"
                   />
                 </div>
 
@@ -195,7 +263,7 @@ const AddTicket = ({ handleNewTicket }) => {
                     onChange={handleChange}
                     placeholder="Enter ticket description..."
                     rows={4}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-md border border-input bg-white text-card-foreground px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
@@ -209,7 +277,7 @@ const AddTicket = ({ handleNewTicket }) => {
                     name="priority"
                     value={formData.priority}
                     onChange={handleChange}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -229,30 +297,36 @@ const AddTicket = ({ handleNewTicket }) => {
                     name="due_date"
                     value={formData.due_date}
                     onChange={handleChange}
+                    className="bg-white text-card-foreground"
                   />
                 </div>
 
-              {/* Assignee */}
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium">
-                  Assignee
-                </label>
+                {/* Assignee */}
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium">
+                    Assignee
+                  </label>
 
-                <select
-                  name="assignee_id"
-                  value={formData.assignee_id}
-                  onChange={handleChange}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Select assignee</option>
-
-                  {projectUsers.map((user) => (
-                    <option key={user._id} value={user._id}>
-                      {user.full_name}
+                  <select
+                    name="assignee_id"
+                    value={formData.assignee_id}
+                    onChange={handleChange}
+                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
+                    disabled={!selectedProject}
+                  >
+                    <option value="">
+                      {selectedProject
+                        ? "Select assignee"
+                        : "Select project first"}
                     </option>
-                  ))}
-                </select>
-              </div>
+
+                    {projectUsers.map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Buttons */}
@@ -261,6 +335,7 @@ const AddTicket = ({ handleNewTicket }) => {
                   type="button"
                   variant="outline"
                   onClick={closeModal}
+                  className="bg-white hover:bg-slate-100 text-card-foreground"
                 >
                   Cancel
                 </Button>
