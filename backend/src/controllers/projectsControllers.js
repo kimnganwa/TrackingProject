@@ -103,7 +103,7 @@ export const updateProject = async (req, res) => {
             });
         }
 
-        const { name, description, status, start_date, end_date } = req.body;
+        const { name, description, status, start_date, end_date, wip_limits } = req.body;
 
         if (name !== undefined) project.name = name;
         
@@ -111,6 +111,13 @@ export const updateProject = async (req, res) => {
         if (status !== undefined) project.status = status;
         if (start_date !== undefined) project.start_date = start_date;
         if (end_date !== undefined) project.end_date = end_date;
+        if (wip_limits?.in_progress !== undefined) {
+            project.wip_limits.in_progress = wip_limits.in_progress;
+        }
+
+        if (wip_limits?.testing !== undefined) {
+            project.wip_limits.testing = wip_limits.testing;
+        }
 
         await project.save();
 

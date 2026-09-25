@@ -1,10 +1,13 @@
 import express from "express";
 
+
 import {
     getAllSprints,
     getSprintById,
     createSprint,
-    updateSprint
+    updateSprint,
+    getSprintThroughput,
+    getSprintBottlenecks
 } from "../controllers/sprintsControllers.js";
 
 import {
@@ -24,6 +27,8 @@ router.post("/", authorizeRoles("Admin", "User"), createSprint);
 
 router.put("/:id", authorizeRoles("Admin", "User"), updateSprint);
 
+router.get("/:id/throughput", authorizeRoles("Admin", "User"), getSprintThroughput);
 
+router.get("/:id/bottlenecks", authorizeRoles("Admin", "User"), getSprintBottlenecks);
 
 export default router;

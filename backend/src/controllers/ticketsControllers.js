@@ -3,6 +3,8 @@ import Epic from "../models/Epic.js";
 import ProjectMember from "../models/ProjectMember.js";
 import mongoose from "mongoose";
 import Sprint from "../models/Sprint.js";
+import Project from "../models/Project.js";
+import TicketActivity from "../models/TicketActivity.js";
 
 // GET /api/tickets
 export const getAllTickets = async (req, res) => {
@@ -109,6 +111,7 @@ export const createTicket = async (req, res) => {
             });
         }
 
+
         const prefixMap = {
             Story: "STORY",
             Task: "TASK",
@@ -124,6 +127,25 @@ export const createTicket = async (req, res) => {
         }
         let epicId = null;
         let parentId = null;
+        let sprintId = null;
+
+        if (req.body.sprint_id) {
+            const sprint = await Sprint.findById(req.body.sprint_id);
+
+            if (!sprint) {
+                return res.status(404).json({
+                    message: "Sprint not found"
+                });
+            }
+
+            if (sprint.project_id.toString() !== req.body.project_id) {
+                return res.status(400).json({
+                    message: "Sprint and Ticket must belong to the same project"
+                });
+            }
+
+            sprintId = sprint._id;
+        }
 
         if (req.body.type === "Story" && req.body.epic_id) {
             const epic = await Epic.findById(req.body.epic_id);
@@ -179,6 +201,7 @@ export const createTicket = async (req, res) => {
 
         const ticketData = {
             project_id: req.body.project_id,
+            sprint_id: sprintId,
             epic_id: epicId,
             parent_id: parentId,
             type: req.body.type,
@@ -187,6 +210,7 @@ export const createTicket = async (req, res) => {
             priority: req.body.priority,
             reporter_id: req.user.id,
             ticket_code: ticketCode,
+            
             
         };
 
@@ -217,6 +241,7 @@ export const updateTicket = async (req, res) => {
                 message: "Ticket not found",
             });
         }
+        const oldStatus = ticket.status;
 
         if (req.body.status) {
             const allowedTransitions = {
@@ -238,6 +263,43 @@ export const updateTicket = async (req, res) => {
                 });
             }
         }
+
+        if (
+            req.body.status &&
+            req.body.status !== ticket.status &&
+            ["In Progress", "Testing"].includes(req.body.status) &&
+            !ticket.sprint_id
+        ) {
+            return res.status(400).json({
+                message: "Ticket must belong to a sprint before starting workflow"
+            });
+        }
+        if (
+            req.body.status &&
+            req.body.status !== ticket.status &&
+            ["In Progress", "Testing"].includes(req.body.status)
+        ) {
+            const project = await Project.findById(ticket.project_id);
+
+            const limit = req.body.status === "In Progress"
+                ? project.wip_limits.in_progress
+                : project.wip_limits.testing;
+
+            if (limit > 0) {
+                const currentWip = await Ticket.countDocuments({
+                    project_id: ticket.project_id,
+                    sprint_id: ticket.sprint_id,
+                    status: req.body.status
+                });
+
+                if (currentWip >= limit) {
+                    return res.status(400).json({
+                        message: `WIP limit reached for ${req.body.status}`
+                    });
+                }
+            }
+        }
+
 
         delete req.body.ticket_code;
         delete req.body.project_id;
@@ -321,6 +383,15 @@ export const updateTicket = async (req, res) => {
 
         Object.assign(ticket, req.body);
         await ticket.save();
+        if (req.body.status && req.body.status !== oldStatus) {
+        await TicketActivity.create({
+            ticket_id: ticket._id,
+            user_id: req.user.id,
+            activity_type: "STATUS_CHANGE",
+            old_value: oldStatus,
+            new_value: ticket.status
+        });
+}
 
         res.status(200).json(ticket);
     } catch (error) {
@@ -390,5 +461,167 @@ export const removeTicketRelation = async (req, res) => {
     } catch (error) {
         console.error("Failed to remove relation:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// GET /api/tickets/:id/cycle-time
+export const getTicketCycleTime = async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+
+        if (!ticket) {
+            return res.status(404).json({
+                message: "Ticket not found"
+            });
+        }
+
+        const member = await ProjectMember.findOne({
+            project_id: ticket.project_id,
+            user_id: req.user.id
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                message: "You are not a member of this project"
+            });
+        }
+
+        const activities = await TicketActivity.find({
+            ticket_id: ticket._id,
+            activity_type: "STATUS_CHANGE"
+        }).sort({ created_at: 1 });
+
+        const startActivity = activities.find(
+            activity => activity.new_value === "In Progress"
+        );
+
+        const doneActivity = activities.find(
+            activity => activity.new_value === "Done"
+        );
+
+        if (!startActivity || !doneActivity) {
+            return res.status(200).json({
+                cycle_time: null
+            });
+        }
+
+        const cycleTimeMs =
+            doneActivity.created_at.getTime() -
+            startActivity.created_at.getTime();
+
+        res.status(200).json({
+            cycle_time: cycleTimeMs
+        });
+    } catch (error) {
+        console.error("Failed to calculate cycle time:", error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
+
+// GET /api/tickets/:id/lead-time
+export const getTicketLeadTime = async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+
+        if (!ticket) {
+            return res.status(404).json({
+                message: "Ticket not found"
+            });
+        }
+
+        const member = await ProjectMember.findOne({
+            project_id: ticket.project_id,
+            user_id: req.user.id
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                message: "You are not a member of this project"
+            });
+        }
+
+        const doneActivity = await TicketActivity.findOne({
+            ticket_id: ticket._id,
+            activity_type: "STATUS_CHANGE",
+            new_value: "Done"
+        }).sort({ created_at: 1 });
+
+        if (!doneActivity) {
+            return res.status(200).json({
+                lead_time: null
+            });
+        }
+
+        const leadTimeMs =
+            doneActivity.created_at.getTime() -
+            ticket.created_at.getTime();
+
+        res.status(200).json({
+            lead_time: leadTimeMs
+        });
+    } catch (error) {
+        console.error("Failed to calculate lead time:", error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
+
+// GET /api/tickets/:id/task-aging
+export const getTicketTaskAging = async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+
+        if (!ticket) {
+            return res.status(404).json({
+                message: "Ticket not found"
+            });
+        }
+
+        const member = await ProjectMember.findOne({
+            project_id: ticket.project_id,
+            user_id: req.user.id
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                message: "You are not a member of this project"
+            });
+        }
+
+        if (ticket.status === "Done") {
+            return res.status(200).json({
+                task_aging: null
+            });
+        }
+
+        const startActivity = await TicketActivity.findOne({
+            ticket_id: ticket._id,
+            activity_type: "STATUS_CHANGE",
+            new_value: "In Progress"
+        }).sort({ created_at: 1 });
+
+        if (!startActivity) {
+            return res.status(200).json({
+                task_aging: null
+            });
+        }
+
+        const taskAgingMs =
+            Date.now() - startActivity.created_at.getTime();
+
+        res.status(200).json({
+            task_aging: taskAgingMs
+        });
+    } catch (error) {
+        console.error("Failed to calculate task aging:", error);
+
+        res.status(500).json({
+            message: "Internal server error"
+        });
     }
 };

@@ -5,6 +5,9 @@ import {
     createTicket,
     getAllTickets,
     getTicketById,
+    getTicketCycleTime,
+    getTicketLeadTime,
+    getTicketTaskAging,
     removeTicketRelation,
     updateTicket
 } from "../controllers/ticketsControllers.js";
@@ -23,6 +26,9 @@ router.put("/:id", authorizeRoles("Admin", "User"), updateTicket);
 router.get("/:id", authorizeRoles("Admin", "User"), getTicketById);
 router.post("/:id/relations", authorizeRoles("Admin", "User"), addTicketRelation);
 router.delete("/:id/relations/:targetId", authorizeRoles("Admin", "User"), removeTicketRelation);
+router.get("/:id/cycle-time", authorizeRoles("Admin", "User"), getTicketCycleTime);
+router.get("/:id/lead-time", authorizeRoles("Admin", "User"), getTicketLeadTime);
+router.get("/:id/task-aging", authorizeRoles("Admin", "User"), getTicketTaskAging);
 
 // API Ticket Activities
 router.get("/:id/activities", authorizeRoles("Admin", "User"), getTicketActivities);

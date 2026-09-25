@@ -13,7 +13,11 @@ const projectSchema = new mongoose.Schema(
             default: "Planning"
         },
         start_date: { type: Date },
-        end_date: { type: Date }
+        end_date: { type: Date },
+        wip_limits: {
+            in_progress: { type: Number, default: 0, min: 0 },
+            testing: { type: Number, default: 0, min: 0 }
+}
     },
     {
         timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
