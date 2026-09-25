@@ -42,24 +42,41 @@ export const getAllTickets = async (req, res) => {
             {
                 $facet: {
                     tickets: [
-                        { $sort: { createdAt: -1 } },
-                        {
-                            $project: {
-                                ticket_code: 1,
-                                type: 1,
-                                title: 1,
-                                priority: 1,
-                                status: 1,
-                                assignee_id: 1,
-                                reporter_id: 1,
-                                due_date: 1,
-                                project_id: 1,
-                                epic_id: 1,
-                                parent_id: 1,
-                                sprint_id: 1,
-                            }
+                    { $sort: { createdAt: -1 } },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "assignee_id",
+                            foreignField: "_id",
+                            as: "assignee"
                         }
-                    ],
+                    },
+                    {
+                        $unwind: {
+                            path: "$assignee",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $project: {
+                            ticket_code: 1,
+                            type: 1,
+                            title: 1,
+                            priority: 1,
+                            status: 1,
+                            assignee_id: {
+                                _id: "$assignee._id",
+                                full_name: "$assignee.full_name"
+                            },
+                            reporter_id: 1,
+                            due_date: 1,
+                            project_id: 1,
+                            epic_id: 1,
+                            parent_id: 1,
+                            sprint_id: 1,
+                        }
+                    }
+                ],
                     activeCount: [
                         {
                             $match: {

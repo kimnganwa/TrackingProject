@@ -186,14 +186,26 @@ export const updateSprint = async (req, res) => {
                 Active: ["Completed"],
                 Completed: [],
             };
-
+            
             if (!allowedTransitions[sprint.status].includes(status)) {
                 return res.status(400).json({
                     message: `Cannot change sprint status from ${sprint.status} to ${status}`
                 });
             }
         }
+        if (status === "Active" && sprint.status !== "Active") {
+            const activeSprint = await Sprint.findOne({
+                project_id: sprint.project_id,
+                status: "Active",
+                _id: { $ne: sprint._id }
+            });
 
+            if (activeSprint) {
+                return res.status(400).json({
+                    message: "This project already has an active sprint"
+                });
+            }
+        }
         if (name !== undefined) sprint.name = name.trim();
         if (goal !== undefined) sprint.goal = goal.trim();
         if (status !== undefined) sprint.status = status;
