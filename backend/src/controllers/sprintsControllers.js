@@ -356,7 +356,7 @@ export const getSprintBottlenecks = async (req, res) => {
 
             const currentWip = currentTickets.length;
 
-            // WIP Limit = 0 nghĩa là không giới hạn
+            // WIP Limit = 0  là không giới hạn
             if (item.limit === 0 || currentWip !== item.limit) {
                 continue;
             }
