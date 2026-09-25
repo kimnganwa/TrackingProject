@@ -9,66 +9,71 @@ import ProjectSidebar from '@/components/ProjectSidebar'; // Nhớ import thêm 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { jwtDecode } from "jwt-decode";
+import { useParams } from 'react-router';
+
 
 const HomePage = () => {
   const [ticketBuffer, setTicketBuffer] = useState([]);
   const [activeTicketCount, setActiveTicketCount] = useState(0);
   const [completeTicketCount, setCompleteTicketCount] = useState(0);
   const [filter, setFilter] = useState("all");
-
+  const [selectedProject, setSelectedProject] = useState(null);
+  const { projectCode } = useParams();
   useEffect(() => {
     fetchTicket();
   }, []);
 
   //Logic
-  const fetchTicket = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const decoded = jwtDecode(token);
+  const fetchTicket = async (projectId = null) => {
+  try {
+    const res = await api.get("/tickets", {
+      params: projectId ? { project_id: projectId } : {},
+    });
 
-      const res = await api.get("/tickets", {
-        params: {
-          user_id: decoded.id,
-        },
-      });
+    setTicketBuffer(res.data.tickets);
+    setActiveTicketCount(res.data.activeCount);
+    setCompleteTicketCount(res.data.completeCount);
 
-      setTicketBuffer(res.data.tickets);
-      setActiveTicketCount(res.data.activeCount);
-      setCompleteTicketCount(res.data.completeCount);
-
-    } catch (error) {
-      console.error("Error when access tickets", error);
-      toast.error("Error when access tickets", { id: "fetch-error" });
-    }
-  };
+  } catch (error) {
+    console.error("Error when access tickets", error);
+    toast.error("Error when access tickets", { id: "fetch-error" });
+  }
+};
 
   const handleTicketChange = () => {
-    fetchTicket();
-  }
+  fetchTicket(selectedProject?._id);
+}
   
   //Biến 
   const filterTickets = ticketBuffer.filter((ticket) => {
     switch(filter){
       case 'active':
-        return ["To Do", "In Progress", "Testing", "Re-Open"].includes(ticket.status);
+        return ["To Do", "In Progress", "Testing"].includes(ticket.status);
       case 'completed':
         return ticket.status === 'Done';
       default:
         return true;
     }
   });
+    const handleSelectProject = (project) => {
+    setSelectedProject(project);
+    fetchTicket(project._id);
+  };
 
   return (
     <div className="flex min-h-screen">
       {/* Cột trái: Sidebar Project */}
-      <ProjectSidebar />
+      <ProjectSidebar
+        selectedProject={selectedProject}
+        handleSelectProject={handleSelectProject}
+        projectCode={projectCode}
+      />
 
       {/* Cột phải: Main Board */}
       <div className="flex-1 flex flex-col relative overflow-hidden">
         <div className="flex-1 w-full mx-auto space-y-6 p-8 overflow-x-auto">
           {/* Đầu trang */}
-          <Header />
+          <Header selectedProject={selectedProject} />
 
           {/* Tạo ticket */}
           <AddTicket handleNewTicket={handleTicketChange} />
