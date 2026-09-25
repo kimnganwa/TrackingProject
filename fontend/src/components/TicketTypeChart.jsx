@@ -2,7 +2,7 @@ import React from 'react';
 import {
   PieChart,
   Pie,
-  Cell,
+  Sector,
   Tooltip,
   ResponsiveContainer,
   Legend
@@ -15,10 +15,17 @@ const TicketTypeChart = ({ tickets }) => {
   }));
 
   const COLORS = [
-  "var(--story)",
-  "var(--task)",
-  "var(--bug)"
-];
+    "var(--story)",
+    "var(--task)",
+    "var(--bug)"
+  ];
+
+  const renderShape = (props) => (
+    <Sector
+      {...props}
+      fill={COLORS[props.index]}
+    />
+  );
 
   return (
     <div className="border rounded-xl p-6 shadow-sm bg-white">
@@ -48,14 +55,8 @@ const TicketTypeChart = ({ tickets }) => {
                 cy="50%"
                 outerRadius={90}
                 label={({ name, value }) => `${name}: ${value}`}
-              >
-                {data.map((entry, index) => (
-                  <Cell
-                    key={entry.name}
-                    fill={COLORS[index]}
-                  />
-                ))}
-              </Pie>
+                shape={renderShape}
+              />
 
               <Tooltip />
               <Legend />

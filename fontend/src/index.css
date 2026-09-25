@@ -56,7 +56,7 @@
       #020b4a 100%
     );
     
-    /* Gradient cho form: Đã đổi sang tone trắng nguyên thuỷ */
+    /* Gradient cho form:  */
     --gradient-card: linear-gradient(
       135deg,
       #ffffff 0%,
@@ -112,7 +112,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Dark mode vẫn giữ viền #C4E2F5 */
+    
     --border: 203 71% 86%;
     --input: 203 71% 86%;
     --ring: 203 71% 86%;
