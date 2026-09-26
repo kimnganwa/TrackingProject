@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
         },
         user_type: { 
             type: String, 
-            enum: ["PM", "Developer", "QC"], 
+            enum: ["PM", "DEV", "QC"], 
             required: function () { return this.role === "User"; } 
         },
         avatar_url: { type: String, default: "" },

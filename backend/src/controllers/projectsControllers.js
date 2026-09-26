@@ -52,33 +52,58 @@ export const createProject = async (req, res) => {
             });
         }
 
-        let { name, code, description, status, start_date, end_date } = req.body;
+        const { name, description, start_date, end_date } = req.body;
 
-        code = code.toUpperCase().trim();
-        if (!code.startsWith("PRJ-")) code = `PRJ-${code}`;
+        // Tự sinh project code
+        const lastProject = await Project.findOne()
+            .sort({ created_at: -1 })
+            .select("code");
+
+        let nextNumber = 1;
+
+        if (lastProject?.code) {
+            const currentNumber = parseInt(
+                lastProject.code.replace("PRJ-", "")
+            );
+
+            if (!isNaN(currentNumber)) {
+                nextNumber = currentNumber + 1;
+            }
+        }
+
+        const code = `PRJ-${String(nextNumber).padStart(3, "0")}`;
 
         const newProject = await Project.create({
             name,
             code,
             description,
-            status,
+            status: "Planning",
             start_date,
             end_date,
             created_by: req.user.id
         });
 
+        // PM tạo project tự động là member
         await ProjectMember.create({
             project_id: newProject._id,
             user_id: req.user.id
         });
 
         res.status(201).json(newProject);
+
     } catch (error) {
+        console.error("Failed to create project:", error);
+
         if (error.code === 11000) {
-            return res.status(400).json({ message: "Project code already exists" });
+            return res.status(400).json({
+                message: "Project code already exists"
+            });
         }
 
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message
+        });
     }
 };
 
