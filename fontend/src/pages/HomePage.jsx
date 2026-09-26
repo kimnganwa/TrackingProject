@@ -105,7 +105,10 @@ const boardTickets = filterTickets.filter(ticket => {
           <Header selectedProject={selectedProject} />
 
           {/* Tạo ticket */}
-          <AddTicket handleNewTicket={handleTicketChange} />
+          <AddTicket handleNewTicket={handleTicketChange}
+            selectedProject={selectedProject}
+            activeSprint={activeSprint} 
+            />
 
           {/* Thống kê và bộ lọc */}
           <StartAndFilter

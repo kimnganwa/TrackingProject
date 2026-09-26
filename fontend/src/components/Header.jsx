@@ -1,19 +1,20 @@
-import React from 'react' 
- 
-const Header = ({ selectedProject }) => { 
-  return ( 
-    <div className="space-y-2 text-center"> 
-      <h1 className="text-4xl font-bold text-transparent bg-primary bg-clip-text">
-        {selectedProject ? selectedProject.name : "Project Tracking"}
-      </h1>
+import React from 'react';
+import { useNavigate } from "react-router";
 
-      {selectedProject && (
-        <p className="text-sm text-muted-foreground font-bold">
-          {selectedProject.code}
-        </p>
-      )}
-    </div> 
-  ) 
-} 
- 
-export default Header
+const Header = ({ selectedProject }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="space-y-2 text-center">
+      <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        className="text-4xl font-bold text-transparent bg-primary bg-clip-text"
+      >
+        Project Tracking System
+      </button>
+    </div>
+  );
+};
+
+export default Header;

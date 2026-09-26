@@ -5,14 +5,17 @@ import { Plus, X, Search } from "lucide-react";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import api from "@/lib/axios";
-import { jwtDecode } from "jwt-decode";
 
-const AddTicket = ({ handleNewTicket }) => {
+const AddTicket = ({
+  handleNewTicket,
+  selectedProject,
+  activeSprint
+}) => {
   const [showModal, setShowModal] = useState(false);
 
-  const [projects, setProjects] = useState([]);
   const [projectUsers, setProjectUsers] = useState([]);
-  const [selectedProject, setSelectedProject] = useState("");
+  const [epics, setEpics] = useState([]);
+  const [stories, setStories] = useState([]);
 
   const [formData, setFormData] = useState({
     type: "Task",
@@ -21,21 +24,51 @@ const AddTicket = ({ handleNewTicket }) => {
     priority: "Medium",
     assignee_id: "",
     due_date: "",
+    epic_id: "",
+    parent_id: "",
+    sprint_id: "",
   });
 
-  // Get projects
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await api.get("/projects");
-        setProjects(response.data);
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      }
-    };
+  const fieldClass =
+    "h-10 w-full rounded-md border border-input bg-card text-foreground px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
 
-    fetchProjects();
-  }, []);
+  const fetchProjectData = async (projectId) => {
+    if (!projectId) return;
+
+    try {
+      const [membersResponse, epicsResponse, storiesResponse] =
+        await Promise.all([
+          api.get(`/project-members/${projectId}`),
+          api.get("/epics", {
+            params: { project_id: projectId },
+          }),
+          api.get("/tickets", {
+            params: { project_id: projectId },
+          }),
+        ]);
+
+      setProjectUsers(
+        membersResponse.data.map((member) => member.user_id)
+      );
+
+      setEpics(epicsResponse.data);
+
+      setStories(
+        storiesResponse.data.tickets.filter(
+          (ticket) => ticket.type === "Story"
+        )
+      );
+    } catch (error) {
+      console.error("Failed to load project data:", error);
+      toast.error("Failed to load project data");
+    }
+  };
+
+  useEffect(() => {
+    if (showModal && selectedProject?._id) {
+      fetchProjectData(selectedProject._id);
+    }
+  }, [showModal, selectedProject]);
 
   const openModal = () => {
     setFormData({
@@ -45,10 +78,15 @@ const AddTicket = ({ handleNewTicket }) => {
       priority: "Medium",
       assignee_id: "",
       due_date: "",
+      epic_id: "",
+      parent_id: "",
+      sprint_id: activeSprint?._id || "",
     });
 
-    setSelectedProject("");
     setProjectUsers([]);
+    setEpics([]);
+    setStories([]);
+
     setShowModal(true);
   };
 
@@ -65,38 +103,22 @@ const AddTicket = ({ handleNewTicket }) => {
     }));
   };
 
-  // Get project members when project changes
-  const handleProjectChange = async (event) => {
-    const projectId = event.target.value;
-
-    setSelectedProject(projectId);
-    setProjectUsers([]);
+  const handleTypeChange = (event) => {
+    const value = event.target.value;
 
     setFormData((prev) => ({
       ...prev,
-      assignee_id: "",
+      type: value,
+      epic_id: "",
+      parent_id: "",
     }));
-
-    if (!projectId) return;
-
-    try {
-      const response = await api.get(`/project-members/${projectId}`);
-
-      setProjectUsers(
-        response.data.map((member) => member.user_id)
-      );
-    } catch (error) {
-      console.error("Failed to fetch project members:", error);
-      toast.error("Failed to load project members");
-    }
   };
 
   const createTicket = async (event) => {
     event.preventDefault();
-    const token = localStorage.getItem("token");
-const decoded = jwtDecode(token);
-    if (!selectedProject) {
-      toast.error("Please select a project");
+
+    if (!selectedProject?._id) {
+      toast.error("Project is required");
       return;
     }
 
@@ -106,51 +128,51 @@ const decoded = jwtDecode(token);
     }
 
     const ticketData = {
-      project_id: selectedProject,
+      project_id: selectedProject._id,
+      sprint_id: formData.sprint_id || null,
       type: formData.type,
       title: formData.title.trim(),
       description: formData.description.trim(),
       priority: formData.priority,
-      reporter_id: decoded.id,
+      assignee_id: formData.assignee_id || null,
+      due_date: formData.due_date || null,
     };
 
-    if (formData.assignee_id.trim()) {
-      ticketData.assignee_id = formData.assignee_id.trim();
+    if (formData.type === "Story") {
+      ticketData.epic_id = formData.epic_id || null;
     }
 
-    if (formData.due_date) {
-      ticketData.due_date = formData.due_date;
+    if (
+      formData.type === "Task" ||
+      formData.type === "Bug"
+    ) {
+      ticketData.parent_id = formData.parent_id || null;
     }
 
     try {
-      const response = await api.post("/ticket", ticketData);
+      const response = await api.post("/tickets", ticketData);
 
-      toast.success(`Ticket ${response.data.ticket_code} added`);
+      toast.success(
+        `Ticket ${response.data.ticket_code} added`
+      );
+
       setShowModal(false);
-
-      setFormData({
-        type: "Task",
-        title: "",
-        description: "",
-        priority: "Medium",
-        assignee_id: "",
-        due_date: "",
-      });
-
-      setSelectedProject("");
-      setProjectUsers([]);
 
       handleNewTicket();
     } catch (error) {
-      console.error("Error occur when add new ticket", error);
-      toast.error("Error occur when add new ticket");
+      console.error("Error when adding ticket:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+        "Error when adding ticket"
+      );
     }
   };
 
   return (
     <>
       {/* Search + Add Ticket */}
-      <Card className="p-6 bolder-0 bg-gradient-card shadow-custom-lg">
+      <Card className="p-6 border border-border bg-background shadow-md">
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative sm:flex-1">
             <Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
@@ -163,7 +185,11 @@ const decoded = jwtDecode(token);
           </div>
 
           <Button
-            size="xl" className="px-6 bg-primary text-primary-foreground hover:bg-primary/90" onClick={openModal}>
+            type="button"
+            size="xl"
+            className="px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={openModal}
+          >
             Add Ticket
             <Plus className="size-5" />
           </Button>
@@ -173,10 +199,10 @@ const decoded = jwtDecode(token);
       {/* Create Ticket Popup */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-xl bg-card text-card-foreground shadow-2xl">
+          <div className="w-full max-w-2xl rounded-xl bg-background text-foreground shadow-2xl">
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-border/30 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <h2 className="text-xl font-semibold">
                 Create Ticket
               </h2>
@@ -184,7 +210,7 @@ const decoded = jwtDecode(token);
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-md p-2 hover:bg-black/10 transition-colors"
+                className="rounded-md p-2 hover:bg-card transition-colors"
               >
                 <X className="size-5" />
               </button>
@@ -200,19 +226,15 @@ const decoded = jwtDecode(token);
                     Project *
                   </label>
 
-                  <select
-                    value={selectedProject}
-                    onChange={handleProjectChange}
-                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
-                  >
-                    <option value="">Select project</option>
-
-                    {projects.map((project) => (
-                      <option key={project._id} value={project._id}>
-                        {project.code} - {project.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Input
+                    value={
+                      selectedProject
+                        ? `${selectedProject.code} - ${selectedProject.name}`
+                        : ""
+                    }
+                    readOnly
+                    className="bg-card text-foreground border-input"
+                  />
                 </div>
 
                 {/* Type */}
@@ -224,11 +246,31 @@ const decoded = jwtDecode(token);
                   <select
                     name="type"
                     value={formData.type}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
+                    onChange={handleTypeChange}
+                    className={fieldClass}
                   >
+                    <option value="Story">Story</option>
                     <option value="Task">Task</option>
                     <option value="Bug">Bug</option>
+                  </select>
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Priority *
+                  </label>
+
+                  <select
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleChange}
+                    className={fieldClass}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
                   </select>
                 </div>
 
@@ -243,7 +285,7 @@ const decoded = jwtDecode(token);
                     value={formData.title}
                     onChange={handleChange}
                     placeholder="Enter ticket title..."
-                    className="bg-white text-card-foreground"
+                    className="bg-card text-foreground placeholder:text-muted-foreground border-input focus:border-primary"
                   />
                 </div>
 
@@ -259,26 +301,104 @@ const decoded = jwtDecode(token);
                     onChange={handleChange}
                     placeholder="Enter ticket description..."
                     rows={4}
-                    className="w-full rounded-md border border-input bg-white text-card-foreground px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-md border border-input bg-card text-foreground placeholder:text-muted-foreground px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
-                {/* Priority */}
+                {/* Epic */}
+                {formData.type === "Story" && (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Epic
+                    </label>
+
+                    <select
+                      name="epic_id"
+                      value={formData.epic_id}
+                      onChange={handleChange}
+                      className={fieldClass}
+                    >
+                      <option value="">No Epic</option>
+
+                      {epics.map((epic) => (
+                        <option
+                          key={epic._id}
+                          value={epic._id}
+                        >
+                          {epic.epic_code} - {epic.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Parent Story */}
+                {(formData.type === "Task" ||
+                  formData.type === "Bug") && (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Parent Story
+                    </label>
+
+                    <select
+                      name="parent_id"
+                      value={formData.parent_id}
+                      onChange={handleChange}
+                      className={fieldClass}
+                    >
+                      <option value="">No Parent Story</option>
+
+                      {stories.map((story) => (
+                        <option
+                          key={story._id}
+                          value={story._id}
+                        >
+                          {story.ticket_code} - {story.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Sprint */}
                 <div>
                   <label className="mb-1 block text-sm font-medium">
-                    Priority *
+                    Sprint
+                  </label>
+
+                  <Input
+                    value={
+                      activeSprint
+                        ? activeSprint.name
+                        : "Backlog"
+                    }
+                    readOnly
+                    className="bg-card text-foreground border-input"
+                  />
+                </div>
+
+                {/* Assignee */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Assignee
                   </label>
 
                   <select
-                    name="priority"
-                    value={formData.priority}
+                    name="assignee_id"
+                    value={formData.assignee_id}
                     onChange={handleChange}
-                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
+                    className={fieldClass}
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                    <option value="">Unassigned</option>
+
+                    {projectUsers.map((user) => (
+                      <option
+                        key={user._id}
+                        value={user._id}
+                      >
+                        {user.full_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -293,35 +413,8 @@ const decoded = jwtDecode(token);
                     name="due_date"
                     value={formData.due_date}
                     onChange={handleChange}
-                    className="bg-white text-card-foreground"
+                    className="bg-card text-foreground border-input focus:border-primary"
                   />
-                </div>
-
-                {/* Assignee */}
-                <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm font-medium">
-                    Assignee
-                  </label>
-
-                  <select
-                    name="assignee_id"
-                    value={formData.assignee_id}
-                    onChange={handleChange}
-                    className="h-10 w-full rounded-md border border-input bg-white text-card-foreground px-3 text-sm"
-                    disabled={!selectedProject}
-                  >
-                    <option value="">
-                      {selectedProject
-                        ? "Select assignee"
-                        : "Select project first"}
-                    </option>
-
-                    {projectUsers.map((user) => (
-                      <option key={user._id} value={user._id}>
-                        {user.full_name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -331,14 +424,14 @@ const decoded = jwtDecode(token);
                   type="button"
                   variant="outline"
                   onClick={closeModal}
-                  className="bg-white hover:bg-slate-100 text-card-foreground"
+                  className="bg-secondary text-secondary-foreground border-border hover:bg-accent"
                 >
                   Cancel
                 </Button>
 
                 <Button
                   type="submit"
-                  variant="gradient"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   Create Ticket
                 </Button>

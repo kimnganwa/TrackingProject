@@ -91,13 +91,15 @@ console.log("TicketCard:", ticket.status, ticket.ticket_code, ticket.title);
                 </div>
 
                 {/* Phần 3: Assignee & Due Date */}
-                {/* TODO: pt-3 và border-t để tạo đường gạch ngang mờ ngăn cách, gap-1.5 để 2 dòng text sát nhau */}
+                
                 <div className="flex flex-col gap-1.5 pt-3 border-t border-border/50">
-                    <span 
-                        className="text-[11px] text-muted-foreground truncate" 
-                        title={users.find((user) => user._id === ticket.assignee_id)?.full_name || "Unassigned"}
-                    >
-                        Assignee: {users.find((user) => user._id === ticket.assignee_id)?.full_name || "Unassigned"}
+                    <span className="text-[11px] text-muted-foreground truncate">
+                        Assignee:{" "}
+                        <span className="font-semibold text-foreground">
+                            {ticket.assignee_id?.full_name ||
+                                users.find((user) => user._id === ticket.assignee_id)?.full_name ||
+                                "Unassigned"}
+                        </span>
                     </span>
 
                     <span className={cn(
