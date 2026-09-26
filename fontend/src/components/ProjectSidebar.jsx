@@ -37,7 +37,7 @@ const ProjectSidebar = ({ selectedProject, handleSelectProject,projectCode  }) =
 
 
   return (
-    <div className={`h-full bg-white min-h-screen border-r bg-muted/20 transition-all duration-300 flex flex-col ${isCollapsed ? 'w-16 p-2' : 'w-64 p-4'}`}>
+    <div className={`self-stretch bg-card transition-all duration-300 flex flex-col ${isCollapsed ? 'w-16 p-2' : 'w-64 p-4'}`}>
       
       {/* Nút thu/mở Sidebar */}
       <div className={`flex items-center mt-2 ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
@@ -60,10 +60,10 @@ const ProjectSidebar = ({ selectedProject, handleSelectProject,projectCode  }) =
               handleSelectProject(project);
               navigate(`/projects/${project.code}/board`);
             }}
-            className={`rounded-lg cursor-pointer transition-colors border ${
+            className={`rounded-lg cursor-pointer transition-all ${
               selectedProject?._id === project._id
-                ? 'bg-accent border-primary'
-                : 'bg-card hover:bg-accent'
+                ? 'bg-secondary shadow-sm'
+                : 'bg-transparent hover:bg-card/60'
             } ${isCollapsed ? 'p-2 flex justify-center' : 'p-3'}`}
             title={isCollapsed ? project.name : ""}
           >

@@ -12,6 +12,7 @@ import api from '@/lib/axios';
 import { useParams } from 'react-router';
 
 
+
 const HomePage = () => {
   const [ticketBuffer, setTicketBuffer] = useState([]);
   const [activeTicketCount, setActiveTicketCount] = useState(0);
@@ -19,6 +20,7 @@ const HomePage = () => {
   const [filter, setFilter] = useState("all");
   const [selectedProject, setSelectedProject] = useState(null);
   const { projectCode } = useParams();
+  const [activeSprint, setActiveSprint] = useState(null);
   useEffect(() => {
     fetchTicket();
   }, []);
@@ -55,11 +57,38 @@ const HomePage = () => {
         return true;
     }
   });
-    const handleSelectProject = (project) => {
-    setSelectedProject(project);
-    fetchTicket(project._id);
-  };
 
+const boardTickets = filterTickets.filter(ticket => {
+  if (!ticket.sprint_id) {
+    return true;
+  }
+
+  return activeSprint && ticket.sprint_id === activeSprint._id;
+});
+  
+    const handleSelectProject = async (project) => {
+  setSelectedProject(project);
+
+  try {
+    const sprintRes = await api.get("/sprints", {
+      params: {
+        project_id: project._id
+      }
+    });
+
+    const sprint = sprintRes.data.find(
+      sprint => sprint.status === "Active"
+    );
+
+    setActiveSprint(sprint || null);
+
+    fetchTicket(project._id);
+
+  } catch (error) {
+    console.error("Failed to fetch active sprint:", error);
+    toast.error("Failed to fetch active sprint");
+  }
+};
   return (
     <div className="flex min-h-screen">
       {/* Cột trái: Sidebar Project */}
@@ -71,7 +100,7 @@ const HomePage = () => {
 
       {/* Cột phải: Main Board */}
       <div className="flex-1 flex flex-col relative overflow-hidden">
-        <div className="flex-1 w-full mx-auto space-y-6 p-8 overflow-x-auto">
+        <div className="flex-1 w-full mx-auto space-y-6 px-8 pt-8 pb-2 overflow-x-auto">
           {/* Đầu trang */}
           <Header selectedProject={selectedProject} />
 
@@ -86,8 +115,13 @@ const HomePage = () => {
             completedTicketsCount={completeTicketCount}
           />
           
-          {/* Danh sách ticket (Đã chuyển thành dạng Board ngang) */}
-          <TicketList filterTicket={filterTickets} filter={filter} />
+          {/* Danh sách ticket */}
+          <TicketList
+            filterTicket={boardTickets}
+            filter={filter}
+            handleTicketChange={handleTicketChange}
+            activeSprint={activeSprint}
+          />
 
           {/* Phân trang lọc theo ngày */}
           <div className="flex flex-col items-center justify-center gap-6 sm:flex-row mt-8">

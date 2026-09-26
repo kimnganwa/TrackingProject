@@ -8,7 +8,7 @@ const Header = ({ selectedProject }) => {
       </h1>
 
       {selectedProject && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-bold">
           {selectedProject.code}
         </p>
       )}

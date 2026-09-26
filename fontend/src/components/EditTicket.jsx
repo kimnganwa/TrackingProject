@@ -64,7 +64,7 @@ const EditTicket = ({ ticket, users, setShowModal }) => {
         }
 
         try {
-            await api.put(`/ticket/${ticket._id}`, {
+            await api.put(`/tickets/${ticket._id}`, {
                 title: editData.title.trim(),
                 description: editData.description.trim(),
                 type: editData.type,

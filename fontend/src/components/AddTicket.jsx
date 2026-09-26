@@ -158,16 +158,12 @@ const decoded = jwtDecode(token);
             <Input
               type="text"
               placeholder="Search ticket..."
-              className="h-12 pl-10 text-base bg-white text-card-foreground border-border/50 focus:border-primary/50 focus:ring-primary/20"
+              className="h-12 pl-10 text-base bg-card text-foreground placeholder:text-muted-foreground border-border focus:border-primary"
             />
           </div>
 
           <Button
-            variant="gradient"
-            size="xl"
-            className="px-6"
-            onClick={openModal}
-          >
+            size="xl" className="px-6 bg-primary text-primary-foreground hover:bg-primary/90" onClick={openModal}>
             Add Ticket
             <Plus className="size-5" />
           </Button>

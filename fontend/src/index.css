@@ -6,146 +6,65 @@
 
 @layer base {
   :root {
-    /* Background mặc định: #010736 */
-    --background: 229 96% 11%;
-    --foreground: 0 0% 100%;
+    /* Main background */
+    --background: 85 67% 96%;
+    --foreground: 212 88% 27%;
 
-    /* Form (Card) trắng nguyên thuỷ: #FFFFFF */
-    --card: 0 0% 100%;
-    --card-foreground: 229 96% 11%;
-    --card-shadow: 229 96% 5%;
+    /* Card */
+    --card: 107 50% 91%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 229 96% 11%;
+    --card-foreground: 212 88% 27%;
 
-    /* Button nằm trực tiếp trên background: #C13383 */
-    --primary: 326 58% 48%;
-    --primary-foreground: 0 0% 100%;
+    /* Popover */
+    --popover: 107 50% 91%;
+    --popover-foreground: 212 88% 27%;
 
-    --secondary: 229 96% 18%;
-    --secondary-foreground: 0 0% 100%;
+    /* Primary */
+    --primary: 200 63% 46%;
+    --primary-foreground: 85 67% 96%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 229 96% 30%;
+    /* Secondary */
+    --secondary: 109 49% 85%;
+    --secondary-foreground: 212 88% 27%;
 
-    --accent: 326 58% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Muted */
+    --muted: 109 49% 85%;
+    --muted-foreground: 205 91% 35%;
 
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 98%;
+    /* Accent */
+    --accent: 135 44% 76%;
+    --accent-foreground: 212 88% 27%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    /* Status */
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 85 67% 96%;
+    --success: 142 70% 50%;
+    --success-foreground: 85 67% 96%;
+    --info: 194 60% 57%;
 
-    --info: 226, 100%, 63%;
-    
-    /* Viền cho khung và ô input màu #C4E2F5 */
-    --border: 203 71% 86%;
-    --input: 203 71% 86%; 
-    --ring: 203 71% 86%; /* Màu viền phát sáng khi click/focus vào input */
+    /* Border / Input */
+    --border: 174 44% 64%;
+    --input: 174 44% 64%;
+    --ring: 200 63% 46%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(
-        135deg,
-        #C13383 0%,
-        #e03c99 100%
-      );
-    --gradient-background: linear-gradient(
-      135deg,
-      #010736 0%,
-      #020b4a 100%
-    );
-    
-    /* Gradient cho form:  */
-    --gradient-card: linear-gradient(
-      135deg,
-      #ffffff 0%,
-      #f8f9fa 100%
-    );
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(229 96% 5% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(229 96% 5% / 0.1),
-      0 2px 4px -2px hsl(229 96% 5% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(229 96% 5% / 0.1),
-      0 4px 6px -4px hsl(229 96% 5% / 0.1);
-    --shadow-glow: 0 0 20px hsl(326 58% 48% / 0.3);
-
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-
+    /* Radius */
     --radius: 0.5rem;
 
-    --sidebar-background: 229 96% 11%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 326 58% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 229 96% 18%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 203 71% 86%;
-    --sidebar-ring: 326 58% 48%;
+    /* Sidebar */
+    --sidebar-background: 107 50% 91%;
+    --sidebar-foreground: 212 88% 27%;
+    --sidebar-primary: 200 63% 46%;
+    --sidebar-primary-foreground: 85 67% 96%;
+    --sidebar-accent: 135 44% 76%;
+    --sidebar-accent-foreground: 212 88% 27%;
+    --sidebar-border: 174 44% 64%;
+    --sidebar-ring: 200 63% 46%;
 
-    /*ticket*/
-    --story: #76C457;
-    --task: #8ACFF8;
-    --bug: #FCAD38;
-    --epic: #722F99;
-
-  }
-
-  .dark {
-    --background: 229 96% 11%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 100%;
-    --card-foreground: 229 96% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 229 96% 11%;
-    --primary: 326 58% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 229 96% 18%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 229 96% 30%;
-    --accent: 326 58% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-    
-    
-    --border: 203 71% 86%;
-    --input: 203 71% 86%;
-    --ring: 203 71% 86%;
+    /* Ticket type */
+    --story: #85E360;
+    --task: #7ED2FA;
+    --bug: #FFB84D;
+    --epic: #B46EF5;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-body {
-    background: linear-gradient(-45deg, #010736, #020b4a, #010736);
-    background-size: 400% 400%;
-    height: 100vh;
-    animation: gradient 15s ease infinite;
-}
-
-@keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
- 
-    50% {
-        background-position: 100% 50%;
-    }
- 
-    100% {
-        background-position: 0% 50%;
-    }
-}

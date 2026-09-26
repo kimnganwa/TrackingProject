@@ -6,7 +6,7 @@ import EditTicket from './EditTicket';
 import { Pencil, SquareChevronDown, SquareEqual, SquareChevronUp, Book, Bug } from 'lucide-react';
 import { SquareChevronsUp } from './CustomIcons'; 
 
-const TicketCard = ({ ticket, index, users }) => {
+const TicketCard = ({ ticket, index, users,handleDragStart  }) => {
     const [showEditModal, setShowEditModal] = React.useState(false);
 
     const isCompleted = ticket.status === "Done";
@@ -37,16 +37,19 @@ const TicketCard = ({ ticket, index, users }) => {
         }
         return <Book className="size-3.5 text-blue-500" />; 
     };
-
+console.log("TicketCard:", ticket.status, ticket.ticket_code, ticket.title);
     return (
         <>
             <Card
+                draggable={!isCompleted}
+                onDragStart={(event) => handleDragStart(event, ticket)}
                 className={cn(
-                    // TODO: Đã bỏ aspect-square và justify-between, dùng gap-3 để các khối nằm sát nhau cách đều
-                    "relative p-4 border-0 bg-gradient-card shadow-custom-md hover:shadow-custom-lg transition-all duration-200 group flex flex-col gap-3",
+                   
+                    "relative p-4 min-h-[185px] border-0 bg-card shadow-custom-md hover:shadow-custom-lg transition-all duration-200 group flex flex-col gap-3",
                     isCompleted && "opacity-75"
                 )}
                 style={{ animationDelay: `${index * 0.1}s` }}
+
             >
                 {/* Phần 1: Ticket Code - Priority - Edit */}
                 <div className="flex items-center justify-between">
