@@ -93,7 +93,7 @@ const LoginPage = () => {
           <Button
             type="submit"
             variant="gradient"
-            className="h-11 w-full"
+            className="h-11 w-full font-bold text-transparent bg-primary bg-clip-text"
             disabled={!formData.email.trim() || !formData.password.trim()}
             >
             Login

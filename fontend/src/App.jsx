@@ -4,7 +4,9 @@ import HomePage from './pages/HomePage' ;
 import NotFound from './pages/NotFound' ;
 import LoginPage from './pages/LoginPage' ;
 import DashboardPage from './pages/DashboardPage';
-
+import BacklogPage from './pages/BacklogPage';
+import SprintPage from './pages/SprintPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 function App() {
   
 
@@ -31,6 +33,18 @@ function App() {
           <Route 
             path="/dashboard" 
             element={<DashboardPage />} 
+          />
+          <Route
+            path="/projects/:projectCode/backlog"
+            element={<BacklogPage />}
+          />
+          <Route
+            path="/projects/:projectCode/sprints"
+            element={<SprintPage />}
+          />
+          <Route
+            path="/projects/:projectCode/analytics"
+            element={<AnalyticsPage />}
           />
         </Routes>
        

@@ -19,7 +19,8 @@ import EditSprint from './EditSprint';
 const ProjectSidebar = ({
   selectedProject,
   handleSelectProject,
-  projectCode
+  projectCode,
+  page = "board"
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -171,7 +172,7 @@ const ProjectSidebar = ({
                 key={project._id}
                 onClick={() => {
                   handleSelectProject(project);
-                  navigate(`/projects/${project.code}/board`);
+                  navigate(`/projects/${project.code}/${page}`);
                 }}
                 className={`rounded-lg cursor-pointer transition-all ${
                   selectedProject?._id === project._id
@@ -233,7 +234,23 @@ const ProjectSidebar = ({
             </p>
           )}
         </div>
+          {/* Backlog */}
+          {selectedProject && !isCollapsed && (
+            <div className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  navigate(`/projects/${selectedProject.code}/backlog`)
+                }
+                className="w-full"
+              >
+                View Backlog
+              </Button>
+              
 
+            </div>
+          )}
 
         {/* Sprint */}
         {selectedProject && !isCollapsed && (
@@ -291,6 +308,7 @@ const ProjectSidebar = ({
                         <Pencil className="size-3.5" />
                       </button>
                     )}
+                    
 
                   </div>
                 </div>
@@ -306,7 +324,16 @@ const ProjectSidebar = ({
 
           </div>
         )}
-
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                navigate(`/projects/${selectedProject.code}/sprints`)
+              }
+              className="w-full mt-4"
+            >
+              View Sprints
+            </Button>
       </div>
 
 

@@ -2,14 +2,56 @@
   "swagger": "2.0",
   "info": {
     "title": "Project APIs",
-    "description": "Tự động tạo API cho Postman",
+    "description": "API documentation for Task Management and Project Tracking System",
     "version": "1.0.0"
   },
   "host": "localhost:5001",
   "basePath": "/",
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Authentication APIs"
+    },
+    {
+      "name": "Users",
+      "description": "User management APIs"
+    },
+    {
+      "name": "Projects",
+      "description": "Project management APIs"
+    },
+    {
+      "name": "Project Members",
+      "description": "Project member APIs"
+    },
+    {
+      "name": "Epics",
+      "description": "Epic management APIs"
+    },
+    {
+      "name": "Sprints",
+      "description": "Sprint management APIs"
+    },
+    {
+      "name": "Tickets",
+      "description": "Ticket management APIs"
+    },
+    {
+      "name": "Metrics",
+      "description": "Workflow metrics APIs"
+    }
+  ],
   "schemes": [
     "http"
   ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Enter: Bearer <token>"
+    }
+  },
   "paths": {
     "/api/tickets/": {
       "get": {
@@ -54,7 +96,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       },
       "post": {
         "description": "",
@@ -74,6 +119,9 @@
                   "example": "any"
                 },
                 "type": {
+                  "example": "any"
+                },
+                "sprint_id": {
                   "example": "any"
                 },
                 "epic_id": {
@@ -120,7 +168,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       }
     },
     "/api/tickets/{id}": {
@@ -191,7 +242,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       },
       "get": {
         "description": "",
@@ -224,7 +278,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       }
     },
     "/api/tickets/{id}/relations": {
@@ -277,7 +334,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       }
     },
     "/api/tickets/{id}/relations/{targetId}": {
@@ -318,7 +378,124 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
+      }
+    },
+    "/api/tickets/{id}/cycle-time": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Metrics"
+        ]
+      }
+    },
+    "/api/tickets/{id}/lead-time": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Metrics"
+        ]
+      }
+    },
+    "/api/tickets/{id}/task-aging": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Metrics"
+        ]
       }
     },
     "/api/tickets/{id}/activities": {
@@ -350,7 +527,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       },
       "post": {
         "description": "",
@@ -401,7 +581,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       }
     },
     "/api/tickets/{id}/attachments": {
@@ -433,7 +616,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       },
       "post": {
         "description": "",
@@ -484,7 +670,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Tickets"
+        ]
       }
     },
     "/api/users/": {
@@ -510,7 +699,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Users"
+        ]
       },
       "post": {
         "description": "",
@@ -534,7 +726,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Users"
+        ]
       }
     },
     "/api/users/{id}": {
@@ -569,7 +764,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Users"
+        ]
       },
       "put": {
         "description": "",
@@ -602,7 +800,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Users"
+        ]
       },
       "delete": {
         "description": "",
@@ -635,7 +836,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Users"
+        ]
       }
     },
     "/api/auth/login": {
@@ -681,7 +885,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Authentication"
+        ]
       }
     },
     "/api/auth/logout": {
@@ -694,7 +901,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Authentication"
+        ]
       }
     },
     "/api/auth/me": {
@@ -723,7 +933,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Authentication"
+        ]
       }
     },
     "/api/projects/": {
@@ -749,7 +962,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Projects"
+        ]
       },
       "post": {
         "description": "",
@@ -768,13 +984,7 @@
                 "name": {
                   "example": "any"
                 },
-                "code": {
-                  "example": "any"
-                },
                 "description": {
-                  "example": "any"
-                },
-                "status": {
                   "example": "any"
                 },
                 "start_date": {
@@ -803,7 +1013,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Projects"
+        ]
       }
     },
     "/api/projects/{id}": {
@@ -838,7 +1051,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Projects"
+        ]
       },
       "put": {
         "description": "",
@@ -901,7 +1117,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Projects"
+        ]
       }
     },
     "/api/project-members/{project_id}": {
@@ -933,7 +1152,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Project Members"
+        ]
       }
     },
     "/api/project-members/": {
@@ -980,7 +1202,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Project Members"
+        ]
       }
     },
     "/api/epics/": {
@@ -1014,7 +1239,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Epics"
+        ]
       },
       "post": {
         "description": "",
@@ -1062,7 +1290,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Epics"
+        ]
       }
     },
     "/api/epics/{id}": {
@@ -1097,7 +1328,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Epics"
+        ]
       },
       "put": {
         "description": "",
@@ -1148,7 +1382,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Epics"
+        ]
       }
     },
     "/api/sprints/": {
@@ -1182,7 +1419,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Sprints"
+        ]
       },
       "post": {
         "description": "",
@@ -1236,7 +1476,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Sprints"
+        ]
       }
     },
     "/api/sprints/{id}": {
@@ -1271,7 +1514,10 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Sprints"
+        ]
       },
       "put": {
         "description": "",
@@ -1331,8 +1577,92 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "tags": [
+          "Sprints"
+        ]
+      }
+    },
+    "/api/sprints/{id}/throughput": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Metrics"
+        ]
+      }
+    },
+    "/api/sprints/{id}/bottlenecks": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Metrics"
+        ]
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }

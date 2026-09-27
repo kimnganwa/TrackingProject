@@ -45,7 +45,15 @@ const DashboardPage = () => {
       setProjects(res.data);
 
       if (res.data.length > 0) {
-        setSelectedProject(res.data[0]._id);
+        const savedProject = localStorage.getItem("selectedProject");
+
+        const projectExists = res.data.some(
+          project => project._id === savedProject
+        );
+
+        setSelectedProject(
+          projectExists ? savedProject : res.data[0]._id
+        );
       }
     } catch (error) {
       console.error("Failed to fetch projects:", error);
@@ -192,7 +200,10 @@ const DashboardPage = () => {
 
             <select
               value={selectedProject}
-              onChange={(event) => setSelectedProject(event.target.value)}
+              onChange={(event) => {
+  setSelectedProject(event.target.value);
+  localStorage.setItem("selectedProject", event.target.value);
+}}
               className="w-full h-11 border rounded-lg px-3 bg-white"
             >
               {projects.map(project => (
@@ -237,15 +248,35 @@ const DashboardPage = () => {
       )}
     </div>
 
-    <Button
-      onClick={() =>
-        navigate(`/projects/${currentProject.code}/board`)
-      }
-    >
-      View Board
-    </Button>
+    <div className="flex items-center gap-3">
+        <Button
+          onClick={() =>
+            navigate(`/projects/${currentProject.code}/board`)
+          }
+        >
+          View Board
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() =>
+            navigate(`/projects/${currentProject.code}/backlog`)
+          }
+        >
+          View Backlog
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            navigate(`/projects/${currentProject.code}/analytics`)
+          }
+        >
+          View Analytics
+        </Button>
+      </div>
+
+    </div>
   </div>
-</div>
 
             <DashboardStats
               averageCycleTime={averageCycleTime}
