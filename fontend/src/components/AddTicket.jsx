@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { Plus, X, Search } from "lucide-react";
+
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { Plus, X, Search, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const AddTicket = ({
   handleNewTicket,
   selectedProject,
   activeSprint
 }) => {
+const navigate = useNavigate();
+const [openAfterCreate, setOpenAfterCreate] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
 
   const [projectUsers, setProjectUsers] = useState([]);
@@ -159,6 +164,9 @@ const AddTicket = ({
       setShowModal(false);
 
       handleNewTicket();
+      if (openAfterCreate) {
+      navigate(`/ticket/${response.data.ticket_code}`);
+}
     } catch (error) {
       console.error("Error when adding ticket:", error);
 
@@ -428,9 +436,19 @@ const AddTicket = ({
                 >
                   Cancel
                 </Button>
-
+                    <Button
+                  type="submit"
+                  variant="outline"
+                  onClick={() => setOpenAfterCreate(true)}
+                  className="bg-secondary text-secondary-foreground border-border hover:bg-accent"
+                  title="Create and open Ticket Detail"
+                >
+                  <ExternalLink className="size-4" />
+                  Create & Open
+                </Button>
                 <Button
                   type="submit"
+                  onClick={() => setOpenAfterCreate(false)}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   Create Ticket

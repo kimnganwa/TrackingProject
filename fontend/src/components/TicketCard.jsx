@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { cn } from '@/lib/utils';
@@ -6,7 +7,9 @@ import EditTicket from './EditTicket';
 import { Pencil, SquareChevronDown, SquareEqual, SquareChevronUp, Book, Bug } from 'lucide-react';
 import { SquareChevronsUp } from './CustomIcons'; 
 
+
 const TicketCard = ({ ticket, index, users,handleDragStart  }) => {
+    const navigate = useNavigate();
     const [showEditModal, setShowEditModal] = React.useState(false);
 
     const isCompleted = ticket.status === "Done";
@@ -57,9 +60,20 @@ console.log("TicketCard:", ticket.status, ticket.ticket_code, ticket.title);
                     <div title={`Type: ${ticket.type || "Task"}`}>
                         {renderTypeIcon(ticket.type)}
                     </div>
-                    <span className="text-xs font-bold text-muted-foreground">
-                        {ticket.ticket_code || `#${ticket._id?.substring(0, 6).toUpperCase()}`}
-                    </span>
+                        <button
+                            type="button"
+                            className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                            onClick={(event) => {
+                                event.stopPropagation();
+
+                                if (ticket.ticket_code) {
+                                    navigate(`/ticket/${ticket.ticket_code}`);
+                                }
+                            }}
+                            onMouseDown={(event) => event.stopPropagation()}
+                        >
+                            {ticket.ticket_code || `#${ticket._id?.substring(0, 6).toUpperCase()}`}
+                        </button>
                 </div>
 
                     <div className="flex items-center gap-1.5">

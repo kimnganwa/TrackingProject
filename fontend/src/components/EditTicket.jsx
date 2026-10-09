@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, ExternalLink  } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import api from "@/lib/axios";
-
+import { useNavigate } from "react-router";
 const EditTicket = ({
     ticket,
     setShowModal,
     handleTicketChange
 }) => {
+    const navigate = useNavigate();
     const [projectUsers, setProjectUsers] = useState([]);
     const [epics, setEpics] = useState([]);
     const [stories, setStories] = useState([]);
@@ -169,13 +170,29 @@ const EditTicket = ({
                         Edit Ticket
                     </h2>
 
-                    <button
-                        type="button"
-                        onClick={() => setShowModal(false)}
-                        className="rounded-md p-2 hover:bg-card transition-colors"
-                    >
-                        <X className="size-5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+
+            <button
+                type="button"
+                onClick={() => {
+                setShowModal(false);
+                navigate(`/ticket/${ticket.ticket_code}`);
+                }}
+                className="rounded-md p-2 text-muted-foreground hover:bg-card hover:text-primary transition-colors"
+                title="Open Ticket Detail"
+            >
+                <ExternalLink className="size-5" />
+            </button>
+
+            <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="rounded-md p-2 hover:bg-card transition-colors"
+            >
+                <X className="size-5" />
+            </button>
+
+            </div>
                 </div>
 
                 {/* Form */}

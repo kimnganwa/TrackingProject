@@ -7,10 +7,10 @@ import DashboardPage from './pages/DashboardPage';
 import BacklogPage from './pages/BacklogPage';
 import SprintPage from './pages/SprintPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-function App() {
-  
+import TicketDetailPage from './pages/TicketDetailPage';
 
-  return (
+function App() {
+    return (
     <>
       <BrowserRouter>
         <Routes>
@@ -46,6 +46,12 @@ function App() {
             path="/projects/:projectCode/analytics"
             element={<AnalyticsPage />}
           />
+          <Route
+            path="/ticket/:ticketCode"
+            element={<TicketDetailPage />}
+          />
+
+
         </Routes>
        
       </BrowserRouter>

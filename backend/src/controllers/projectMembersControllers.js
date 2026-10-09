@@ -73,3 +73,55 @@ export const getProjectMembers = async (req, res) => {
         });
     }
 };
+
+// DELETE /api/project-members/:project_id/:user_id
+export const removeProjectMember = async (req, res) => {
+    try {
+        const { project_id, user_id } = req.params;
+
+        if (req.user.role !== "User" || req.user.user_type !== "PM") {
+            return res.status(403).json({
+                message: "Only PM users can remove members from projects"
+            });
+        }
+
+        const project = await Project.findById(project_id);
+
+        if (!project) {
+            return res.status(404).json({
+                message: "Project not found"
+            });
+        }
+
+        if (project.created_by.toString() !== req.user.id) {
+            return res.status(403).json({
+                message: "You do not have permission to remove members from this project"
+            });
+        }
+
+        if (project.created_by.toString() === user_id) {
+            return res.status(400).json({
+                message: "Project Manager cannot be removed"
+            });
+        }
+
+        const member = await ProjectMember.findOneAndDelete({
+            project_id,
+            user_id
+        });
+
+        if (!member) {
+            return res.status(404).json({
+                message: "Project member not found"
+            });
+        }
+
+        res.status(200).json({
+            message: "Member removed successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};

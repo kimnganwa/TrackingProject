@@ -393,6 +393,10 @@ export const getSprintBottlenecks = async (req, res) => {
                     agingTickets.push({
                         ticket_id: ticket._id,
                         ticket_code: ticket.ticket_code,
+                        title: ticket.title,
+                        status: ticket.status,
+                        created_at: ticket.created_at,
+                        in_progress_at: startActivity.created_at,
                         task_aging: taskAging
                     });
                 }
