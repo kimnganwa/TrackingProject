@@ -4,7 +4,7 @@ import TicktetEmptyState from './TicktetEmptyState';
 import api from "@/lib/axios";
 import { toast } from 'sonner';
 
-const TicketList = ({ filterTicket, filter, handleTicketChange, activeSprint }) => { 
+const TicketList = ({ filterTicket, handleTicketChange, activeSprint }) => { 
   const [users, setUsers] = useState([]);
   const [draggedTicket, setDraggedTicket] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
@@ -136,7 +136,7 @@ const TicketList = ({ filterTicket, filter, handleTicketChange, activeSprint }) 
   };
 
   if (!sortedTickets || sortedTickets.length === 0) {
-    return <TicktetEmptyState filter={filter} />
+    return <TicktetEmptyState />
   }
 
   return (
@@ -181,6 +181,7 @@ const TicketList = ({ filterTicket, filter, handleTicketChange, activeSprint }) 
                   index={index}
                   users={users}
                   handleDragStart={handleDragStart}
+                  handleTicketChange={handleTicketChange}
                 />
               ))}
             </div>

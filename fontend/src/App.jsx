@@ -8,6 +8,8 @@ import BacklogPage from './pages/BacklogPage';
 import SprintPage from './pages/SprintPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TicketDetailPage from './pages/TicketDetailPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import SprintDetailPage from "@/pages/SprintDetailPage";
 
 function App() {
     return (
@@ -50,8 +52,14 @@ function App() {
             path="/ticket/:ticketCode"
             element={<TicketDetailPage />}
           />
-
-
+          <Route
+            path="/projects/:projectCode/detail"
+            element={<ProjectDetailPage />}
+          />
+          <Route
+            path="/projects/:projectCode/sprints/:sprintId"
+            element={<SprintDetailPage />}
+          />
         </Routes>
        
       </BrowserRouter>

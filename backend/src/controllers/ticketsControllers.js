@@ -12,7 +12,9 @@ export const getAllTickets = async (req, res) => {
         //const userId = new mongoose.Types.ObjectId(req.user.id);
         const { project_id, epic_id, parent_id, sprint_id } = req.query;
 
-        const filter = {};
+        const filter = {
+
+        };
 
         if (project_id) {
             filter.project_id = new mongoose.Types.ObjectId(project_id);

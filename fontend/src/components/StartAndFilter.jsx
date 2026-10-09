@@ -2,11 +2,12 @@ import React from 'react'
 import { Badge } from './ui/badge'
 import { FilterType } from '@/lib/data'
 import { Button } from './ui/button'
-import { Filter } from 'lucide-react'
 
 const StartAndFilter = ( {
   completedTicketsCount = 0, 
   activeTicketsCount = 0 , 
+  myTicketsOnly = false,
+  setMyTicketsOnly = () => {},
   filter = "all",
   setFilter
   } ) => {
@@ -29,22 +30,14 @@ const StartAndFilter = ( {
       </div>
       {/* Phần filter */}
       <div className="flex flex-col gap-2 sm:flex-row">
-        {
-          Object.keys(FilterType).map((type) => (
-          <Button
-            key={type}
-            variant={filter === type  ? 'gradient' : 'ghost'}
-            size="sm"
-            className='capitalize'
-            onClick={() => setFilter(type)}
-          >
-
-            <Filter className='size-4' />
-            {FilterType[type]}
-
-          </Button>
-          ))
-        }
+        <Button
+         className="rounded-l"
+          variant={myTicketsOnly ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMyTicketsOnly(!myTicketsOnly)}
+        >
+          My Tickets
+        </Button>
       </div>
 
     </div>

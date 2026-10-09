@@ -9,7 +9,8 @@ import ProjectSidebar from '@/components/ProjectSidebar'; // Nhớ import thêm 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { useParams } from 'react-router';
+import { useParams, useNavigate  } from 'react-router';
+import { jwtDecode } from "jwt-decode";
 
 
 
@@ -17,13 +18,49 @@ const HomePage = () => {
   const [ticketBuffer, setTicketBuffer] = useState([]);
   const [activeTicketCount, setActiveTicketCount] = useState(0);
   const [completeTicketCount, setCompleteTicketCount] = useState(0);
-  const [filter, setFilter] = useState("all");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
   const { projectCode } = useParams();
+  const navigate = useNavigate();
   const [activeSprint, setActiveSprint] = useState(null);
+  const [myTicketsOnly, setMyTicketsOnly] = useState(false);
+  const token = localStorage.getItem("token");
+  const currentUser = token ? jwtDecode(token) : null;    
+
   useEffect(() => {
-    fetchTicket();
-  }, []);
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get("/projects");
+      const projects = response.data;
+
+      if (projects.length === 0) {
+        setSelectedProject(null);
+        setActiveSprint(null);
+        setTicketBuffer([]);
+        return;
+      }
+
+      const savedProject = localStorage.getItem("selectedProject");
+
+      const project = projects.find(
+        item => item.code === projectCode
+      ) || projects.find(
+        item => item._id === savedProject
+      ) || projects[0];
+
+      await handleSelectProject(project);
+
+      if (project.code !== projectCode) {
+        navigate(`/projects/${project.code}/board`, { replace: true });
+      }
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+      toast.error("Failed to load projects");
+    }
+  };
+
+  fetchProjects();
+}, [projectCode]);
 
   //Logic
   const fetchTicket = async (projectId = null) => {
@@ -46,28 +83,25 @@ const HomePage = () => {
   fetchTicket(selectedProject?._id);
 }
   
-  //Biến 
-  const filterTickets = ticketBuffer.filter((ticket) => {
-    switch(filter){
-      case 'active':
-        return ["To Do", "In Progress", "Testing"].includes(ticket.status);
-      case 'completed':
-        return ticket.status === 'Done';
-      default:
-        return true;
-    }
-  });
-
-const boardTickets = filterTickets.filter(ticket => {
-  if (!ticket.sprint_id) {
-    return true;
+  //Filter 
+const boardTickets = ticketBuffer.filter((ticket) => {
+  if (ticket.sprint_id && ticket.sprint_id !== activeSprint?._id) {
+    return false;
   }
 
-  return activeSprint && ticket.sprint_id === activeSprint._id;
+  if (myTicketsOnly) {
+    const assigneeId = ticket.assignee_id?._id || ticket.assignee_id;
+    const reporterId = ticket.reporter_id?._id || ticket.reporter_id;
+
+    return assigneeId === currentUser?.id || reporterId === currentUser?.id;
+  }
+
+  return true;
 });
   
     const handleSelectProject = async (project) => {
   setSelectedProject(project);
+  localStorage.setItem("selectedProject", project._id);
 
   try {
     const sprintRes = await api.get("/sprints", {
@@ -105,15 +139,18 @@ const boardTickets = filterTickets.filter(ticket => {
           <Header selectedProject={selectedProject} />
 
           {/* Tạo ticket */}
-          <AddTicket handleNewTicket={handleTicketChange}
+          <AddTicket 
+            handleNewTicket={handleTicketChange}
             selectedProject={selectedProject}
-            activeSprint={activeSprint} 
+            activeSprint={activeSprint}
+            searchKeyword={searchKeyword}
+            setSearchKeyword={setSearchKeyword}
             />
 
           {/* Thống kê và bộ lọc */}
           <StartAndFilter
-            filter={filter}
-            setFilter={setFilter}
+            myTicketsOnly={myTicketsOnly}
+            setMyTicketsOnly={setMyTicketsOnly}
             activeTicketsCount={activeTicketCount}
             completedTicketsCount={completeTicketCount}
           />
@@ -121,7 +158,6 @@ const boardTickets = filterTickets.filter(ticket => {
           {/* Danh sách ticket */}
           <TicketList
             filterTicket={boardTickets}
-            filter={filter}
             handleTicketChange={handleTicketChange}
             activeSprint={activeSprint}
           />

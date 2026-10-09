@@ -11,7 +11,9 @@ import { useNavigate } from "react-router";
 const AddTicket = ({
   handleNewTicket,
   selectedProject,
-  activeSprint
+  activeSprint,
+  searchKeyword,
+  setSearchKeyword
 }) => {
 const navigate = useNavigate();
 const [openAfterCreate, setOpenAfterCreate] = useState(false);
@@ -189,9 +191,24 @@ const [openAfterCreate, setOpenAfterCreate] = useState(false);
               type="text"
               placeholder="Search ticket..."
               className="h-12 pl-10 text-base bg-card text-foreground placeholder:text-muted-foreground border-border focus:border-primary"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                }
+              }}
+              
             />
+            {searchKeyword && (
+              <X
+                className="absolute right-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground cursor-pointer hover:text-foreground"
+                onClick={() => setSearchKeyword("")}
+              />
+            )}
           </div>
-
+            
           <Button
             type="button"
             size="xl"

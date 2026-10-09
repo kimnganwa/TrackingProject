@@ -160,17 +160,32 @@ const DashboardPage = () => {
       const agingData = activeTickets
         .map((ticket, index) => ({
           ...ticket,
-          task_aging: agingResponses[index].data.task_aging
+          task_aging: agingResponses[index].data.task_aging !== null
+            ? agingResponses[index].data.task_aging / 3
+            : null
         }))
         .filter(ticket => ticket.task_aging !== null)
         .sort((a, b) => b.task_aging - a.task_aging);
 
-      setAverageCycleTime(averageCycle);
-      setAverageLeadTime(averageLead);
+      setAverageCycleTime(averageCycle !== null ? averageCycle / 3 : null);
+      setAverageLeadTime(averageLead !== null ? averageLead / 3 : null);
       setThroughput(throughputRes.data.throughput);
       setTaskAging(agingData);
-      setBottlenecks(bottleneckRes.data.bottlenecks);
-      setSle(bottleneckRes.data.sle);
+      setBottlenecks(
+  bottleneckRes.data.bottlenecks.map(bottleneck => ({
+    ...bottleneck,
+    aging_tickets: bottleneck.aging_tickets.map(ticket => ({
+      ...ticket,
+      task_aging: ticket.task_aging / 3
+    }))
+  }))
+);
+
+setSle(
+  bottleneckRes.data.sle !== null
+    ? bottleneckRes.data.sle / 3
+    : null
+);
 
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);

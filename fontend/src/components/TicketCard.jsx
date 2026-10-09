@@ -8,7 +8,7 @@ import { Pencil, SquareChevronDown, SquareEqual, SquareChevronUp, Book, Bug } fr
 import { SquareChevronsUp } from './CustomIcons'; 
 
 
-const TicketCard = ({ ticket, index, users,handleDragStart  }) => {
+const TicketCard = ({ ticket, index, users,handleDragStart, handleTicketChange   }) => {
     const navigate = useNavigate();
     const [showEditModal, setShowEditModal] = React.useState(false);
 
@@ -132,6 +132,7 @@ console.log("TicketCard:", ticket.status, ticket.ticket_code, ticket.title);
                     ticket={ticket}
                     users={users}
                     setShowModal={setShowEditModal}
+                    handleTicketChange={handleTicketChange}
                 />
             )}
         </>

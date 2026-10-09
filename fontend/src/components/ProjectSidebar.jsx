@@ -188,9 +188,17 @@ const ProjectSidebar = ({
 
                 {isCollapsed ? (
 
-                  <p className="text-[10px] font-bold text-slate-800 break-all text-center">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(`/projects/${project.code}/detail`);
+                    }}
+                    className="text-[10px] font-bold text-primary break-all text-center hover:underline"
+                    title="View Project Details"
+                  >
                     {project.code}
-                  </p>
+                  </button>
 
                 ) : (
 
@@ -201,9 +209,17 @@ const ProjectSidebar = ({
                         {project.name}
                       </p>
 
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigate(`/projects/${project.code}/detail`);
+                        }}
+                        className="text-xs text-primary hover:underline mt-1"
+                        title="View Project Details"
+                      >
                         ID: {project.code}
-                      </p>
+                      </button>
                     </div>
 
                     {canEditProject && (
@@ -286,16 +302,31 @@ const ProjectSidebar = ({
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {sprint.name}
-                      </p>
-
-                      <span className="text-xs text-muted-foreground">
+                    <div className="min-w-0 flex items-center gap-2">
+                      <span
+                        className={`shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full ${
+                          sprint.status === "Completed"
+                            ? "bg-green-100 text-green-700"
+                            : sprint.status === "Active"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-secondary text-secondary-foreground"
+                        }`}
+                      >
                         {sprint.status}
                       </span>
-                    </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(`/projects/${selectedProject.code}/sprints/${sprint._id}`)
+                        }
+                        className="min-w-0 text-sm font-medium text-foreground truncate text-left hover:text-primary hover:underline"
+                        title={sprint.name}
+                      >
+                        {sprint.name}
+                      </button>
+                    </div>                    
+
 
 
                     {canManageSprint && (

@@ -234,9 +234,9 @@ const formatDuration = (milliseconds) => {
     return "N/A";
   }
 
-  const totalMinutes = Math.floor(
-    Number(milliseconds) / (1000 * 60)
-  );
+const totalMinutes = Math.floor(
+  Number(milliseconds) / (3 * 1000 * 60)
+);
 
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
